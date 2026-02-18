@@ -27,7 +27,19 @@ Install dependencies:
 npm install
 ```
 
-Create `/.env.local` with required server-side variables:
+Never commit `.env` files. Keep real secrets in `.env.local` only.
+
+Create your local env file from `.env.example`:
+
+```bash
+# macOS/Linux
+cp .env.example .env.local
+
+# Windows (PowerShell)
+Copy-Item .env.example .env.local
+```
+
+Then fill in real values in `.env.local` (example required runtime keys):
 
 ```bash
 DATABASE_URL=postgresql://...
@@ -99,6 +111,18 @@ npm run db:seed
 ```
 
 3. Sign in at `/auth/signin` with `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD`.
+
+## Secret Safety
+
+- `.env` and `.env.*` are gitignored.
+- `.env.example` is allowed and should contain keys only (no real secrets).
+- A Husky pre-commit hook blocks commits that include `.env` files.
+
+Run the optional secrets scan:
+
+```bash
+npm run secrets:scan
+```
 
 ## Deployment Note
 
