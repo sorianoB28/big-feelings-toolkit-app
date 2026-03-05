@@ -1,0 +1,11 @@
+unhandledRejection Error [PageNotFoundError]: Cannot find module for page: /_document
+    at getPagePath (C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\server\require.js:94:15)
+    at requirePage (C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\server\require.js:99:22)
+    at C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\server\load-components.js:72:65
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Promise.all (index 0)
+    at async loadComponentsImpl (C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\server\load-components.js:71:33)
+    at async Object.hasCustomGetInitialProps (C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\utils.js:1274:24) {
+  type: 'PageNotFoundError',
+  code: 'ENOENT'
+}

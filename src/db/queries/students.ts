@@ -9,6 +9,9 @@ export type StudentListItem = {
   grade: string | null;
   homeroomClassroomId: string | null;
   homeroomClassroomName: string | null;
+  avatarKey: string | null;
+  themeKey: string | null;
+  points: number;
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -30,6 +33,8 @@ export type StudentMutationInput = {
   grade: string | null;
   homeroomClassroomId: string | null;
   notes: string | null;
+  avatarKey: string | null;
+  themeKey: string | null;
   active: boolean;
 };
 
@@ -46,9 +51,60 @@ type ActorRow = {
   is_active: boolean;
 };
 
+type StudentColumnRow = {
+  column_name: string;
+};
+
+type StudentOptionalColumns = {
+  avatarKey: boolean;
+  themeKey: boolean;
+  points: boolean;
+};
+
+let studentOptionalColumnsCache: StudentOptionalColumns | null = null;
+
+async function getStudentOptionalColumns(): Promise<StudentOptionalColumns> {
+  if (studentOptionalColumnsCache) {
+    return studentOptionalColumnsCache;
+  }
+
+  const result = await db.query<StudentColumnRow>(
+    `
+      select column_name
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'students'
+        and column_name = any($1::text[])
+    `,
+    [["avatar_key", "theme_key", "points"]]
+  );
+
+  const available = new Set(result.rows.map((row) => row.column_name));
+  studentOptionalColumnsCache = {
+    avatarKey: available.has("avatar_key"),
+    themeKey: available.has("theme_key"),
+    points: available.has("points"),
+  };
+
+  return studentOptionalColumnsCache;
+}
+
 function normalizeSearch(search?: string): string | null {
   const trimmed = search?.trim();
   return trimmed ? `%${trimmed}%` : null;
+}
+
+function parsePoints(value: number | string | null): number {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isNaN(parsed) ? 0 : parsed;
+  }
+
+  return 0;
 }
 
 function mapListRow(row: {
@@ -57,6 +113,9 @@ function mapListRow(row: {
   grade: string | null;
   homeroom_classroom_id: string | null;
   homeroom_classroom_name: string | null;
+  avatar_key: string | null;
+  theme_key: string | null;
+  points: number | string | null;
   active: boolean;
   created_at: string;
   updated_at: string;
@@ -67,6 +126,9 @@ function mapListRow(row: {
     grade: row.grade,
     homeroomClassroomId: row.homeroom_classroom_id,
     homeroomClassroomName: row.homeroom_classroom_name,
+    avatarKey: row.avatar_key,
+    themeKey: row.theme_key,
+    points: parsePoints(row.points),
     active: row.active,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -82,6 +144,9 @@ function mapDetailRow(row: {
   display_name: string;
   grade: string | null;
   notes: string | null;
+  avatar_key: string | null;
+  theme_key: string | null;
+  points: number | string | null;
   active: boolean;
   created_at: string;
   updated_at: string;
@@ -95,6 +160,9 @@ function mapDetailRow(row: {
     displayName: row.display_name,
     grade: row.grade,
     notes: row.notes,
+    avatarKey: row.avatar_key,
+    themeKey: row.theme_key,
+    points: parsePoints(row.points),
     active: row.active,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -159,6 +227,7 @@ export async function listAccessibleStudents(options: {
   search?: string;
 }): Promise<StudentListItem[]> {
   const actor = await getActorAccess(options.actorUserId);
+  const optionalColumns = await getStudentOptionalColumns();
   const search = normalizeSearch(options.search);
 
   const params: Array<string> = [actor.schoolId];
@@ -181,6 +250,9 @@ export async function listAccessibleStudents(options: {
     grade: string | null;
     homeroom_classroom_id: string | null;
     homeroom_classroom_name: string | null;
+    avatar_key: string | null;
+    theme_key: string | null;
+    points: number | string | null;
     active: boolean;
     created_at: string;
     updated_at: string;
@@ -192,6 +264,13 @@ export async function listAccessibleStudents(options: {
         s.grade,
         s.homeroom_classroom_id::text as homeroom_classroom_id,
         c.name as homeroom_classroom_name,
+        ${
+          optionalColumns.avatarKey ? "s.avatar_key" : "null::text as avatar_key"
+        },
+        ${
+          optionalColumns.themeKey ? "s.theme_key" : "null::text as theme_key"
+        },
+        ${optionalColumns.points ? "s.points" : "0::int as points"},
         s.active,
         s.created_at::text as created_at,
         s.updated_at::text as updated_at
@@ -211,6 +290,7 @@ export async function getAccessibleStudentById(options: {
   studentId: string;
 }): Promise<StudentDetail | null> {
   const actor = await getActorAccess(options.actorUserId);
+  const optionalColumns = await getStudentOptionalColumns();
   const params: Array<string> = [options.studentId, actor.schoolId];
   let teacherFilter = "";
 
@@ -228,6 +308,9 @@ export async function getAccessibleStudentById(options: {
     display_name: string;
     grade: string | null;
     notes: string | null;
+    avatar_key: string | null;
+    theme_key: string | null;
+    points: number | string | null;
     active: boolean;
     created_at: string;
     updated_at: string;
@@ -242,6 +325,13 @@ export async function getAccessibleStudentById(options: {
         s.display_name,
         s.grade,
         s.notes,
+        ${
+          optionalColumns.avatarKey ? "s.avatar_key" : "null::text as avatar_key"
+        },
+        ${
+          optionalColumns.themeKey ? "s.theme_key" : "null::text as theme_key"
+        },
+        ${optionalColumns.points ? "s.points" : "0::int as points"},
         s.active,
         s.created_at::text as created_at,
         s.updated_at::text as updated_at
@@ -285,31 +375,49 @@ export async function createStudent(options: {
   input: StudentMutationInput;
 }): Promise<{ id: string }> {
   const actor = await getActorAccess(options.actorUserId);
+  const optionalColumns = await getStudentOptionalColumns();
   await validateHomeroomAssignment(actor, options.input.homeroomClassroomId);
+
+  const columns = [
+    "school_id",
+    "created_by_user_id",
+    "homeroom_classroom_id",
+    "display_name",
+    "grade",
+    "notes",
+  ];
+  const values: Array<string | boolean | null> = [
+    actor.schoolId,
+    actor.id,
+    options.input.homeroomClassroomId,
+    options.input.displayName,
+    options.input.grade,
+    options.input.notes,
+  ];
+
+  if (optionalColumns.avatarKey) {
+    columns.push("avatar_key");
+    values.push(options.input.avatarKey);
+  }
+
+  if (optionalColumns.themeKey) {
+    columns.push("theme_key");
+    values.push(options.input.themeKey);
+  }
+
+  columns.push("active");
+  values.push(options.input.active);
+  const placeholders = values.map((_, index) => `$${index + 1}`).join(", ");
 
   const result = await db.query<{ id: string }>(
     `
       insert into students (
-        school_id,
-        created_by_user_id,
-        homeroom_classroom_id,
-        display_name,
-        grade,
-        notes,
-        active
+        ${columns.join(", ")}
       )
-      values ($1, $2, $3, $4, $5, $6, $7)
+      values (${placeholders})
       returning id::text as id
     `,
-    [
-      actor.schoolId,
-      actor.id,
-      options.input.homeroomClassroomId,
-      options.input.displayName,
-      options.input.grade,
-      options.input.notes,
-      options.input.active,
-    ]
+    values
   );
 
   const created = result.rows[0];
@@ -335,29 +443,47 @@ export async function updateStudent(options: {
   }
 
   const actor = await getActorAccess(options.actorUserId);
+  const optionalColumns = await getStudentOptionalColumns();
   await validateHomeroomAssignment(actor, options.input.homeroomClassroomId);
+
+  const assignments: string[] = [
+    "homeroom_classroom_id = $1",
+    "display_name = $2",
+    "grade = $3",
+    "notes = $4",
+  ];
+  const values: Array<string | boolean | null> = [
+    options.input.homeroomClassroomId,
+    options.input.displayName,
+    options.input.grade,
+    options.input.notes,
+  ];
+
+  if (optionalColumns.avatarKey) {
+    values.push(options.input.avatarKey);
+    assignments.push(`avatar_key = $${values.length}`);
+  }
+
+  if (optionalColumns.themeKey) {
+    values.push(options.input.themeKey);
+    assignments.push(`theme_key = $${values.length}`);
+  }
+
+  values.push(options.input.active);
+  assignments.push(`active = $${values.length}`);
+  values.push(options.studentId);
+  const whereParamIndex = values.length;
 
   const result = await db.query<{ id: string }>(
     `
       update students
       set
-        homeroom_classroom_id = $1,
-        display_name = $2,
-        grade = $3,
-        notes = $4,
-        active = $5,
+        ${assignments.join(",\n        ")},
         updated_at = now()
-      where id = $6
+      where id = $${whereParamIndex}
       returning id::text as id
     `,
-    [
-      options.input.homeroomClassroomId,
-      options.input.displayName,
-      options.input.grade,
-      options.input.notes,
-      options.input.active,
-      options.studentId,
-    ]
+    values
   );
 
   const updated = result.rows[0];
@@ -366,4 +492,58 @@ export async function updateStudent(options: {
   }
 
   return updated;
+}
+
+export async function incrementStudentPoints(options: {
+  studentId: string;
+  pointsToAdd: number;
+}): Promise<{ studentId: string; points: number }> {
+  const optionalColumns = await getStudentOptionalColumns();
+  const safePointsToAdd = Number.isFinite(options.pointsToAdd)
+    ? Math.max(0, Math.round(options.pointsToAdd))
+    : 0;
+
+  if (!optionalColumns.points) {
+    const existing = await db.query<{ id: string }>(
+      `
+        select id::text as id
+        from students
+        where id = $1
+        limit 1
+      `,
+      [options.studentId]
+    );
+
+    const row = existing.rows[0];
+    if (!row) {
+      throw new Error("Student not found.");
+    }
+
+    return {
+      studentId: row.id,
+      points: 0,
+    };
+  }
+
+  const result = await db.query<{ id: string; points: number | string }>(
+    `
+      update students
+      set
+        points = coalesce(points, 0) + $1,
+        updated_at = now()
+      where id = $2
+      returning id::text as id, points
+    `,
+    [safePointsToAdd, options.studentId]
+  );
+
+  const row = result.rows[0];
+  if (!row) {
+    throw new Error("Student not found.");
+  }
+
+  return {
+    studentId: row.id,
+    points: parsePoints(row.points),
+  };
 }

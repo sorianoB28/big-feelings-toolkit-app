@@ -1,0 +1,11 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160' fill='none'>
+  <defs>
+    <linearGradient id='grad-turtle' x1='12' y1='12' x2='148' y2='148' gradientUnits='userSpaceOnUse'>
+      <stop stop-color='#DDF1D8'/>
+      <stop offset='1' stop-color='white'/>
+    </linearGradient>
+  </defs>
+  <circle cx='80' cy='80' r='76' fill='url(#grad-turtle)' stroke='white' stroke-width='6'/>
+  <circle cx='80' cy='80' r='55' fill='white' fill-opacity='0.62'/>
+  <text x='80' y='92' text-anchor='middle' font-family='Segoe UI, Arial, sans-serif' font-size='34' font-weight='700' letter-spacing='1' fill='#2F6A3A'>TR</text>
+</svg>

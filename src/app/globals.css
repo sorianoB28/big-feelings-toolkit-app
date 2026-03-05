@@ -2,12 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    @apply bg-background font-sans text-dark antialiased;
+  }
+
+  h1 {
+    @apply text-3xl font-semibold text-dark;
+  }
+
+  h2 {
+    @apply text-2xl font-semibold text-dark;
+  }
+
+  h3 {
+    @apply text-xl font-medium text-dark;
+  }
+}
+
+@layer components {
+  .app-container {
+    @apply mx-auto w-full max-w-6xl px-6;
+  }
+
+  .app-page {
+    @apply py-8;
+  }
+
+  .app-card {
+    @apply rounded-xl border border-border-soft bg-surface shadow-sm;
+  }
+
+  .app-card-hover {
+    @apply transition-all duration-200 ease-out motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md;
+  }
+}
+
 body {
-  font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  margin: 0;
 }

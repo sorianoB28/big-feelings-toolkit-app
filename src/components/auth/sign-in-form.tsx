@@ -2,6 +2,12 @@
 
 import { FormEvent, useState } from "react";
 import { signIn } from "next-auth/react";
+import {
+  buttonPrimaryClass,
+  inputBaseClass,
+} from "@/components/ui/form-styles";
+import { FlashToast } from "@/components/ui/flash-toast";
+import { MotionButton } from "@/components/ui/motion-primitives";
 import { getSignInErrorMessage } from "@/lib/auth/sign-in-errors";
 
 type SignInFormProps = {
@@ -40,8 +46,9 @@ export function SignInForm({ callbackUrl, initialError }: SignInFormProps) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
+      {error ? <FlashToast message={error} tone="error" /> : null}
       <div>
-        <label htmlFor="email" className="mb-1 block text-sm font-medium text-slate-700">
+        <label htmlFor="email" className="mb-1 block text-sm font-medium text-dark">
           Staff Email
         </label>
         <input
@@ -50,12 +57,12 @@ export function SignInForm({ callbackUrl, initialError }: SignInFormProps) {
           type="email"
           autoComplete="email"
           required
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none ring-cyan-500 placeholder:text-slate-400 focus:ring-2"
+          className={inputBaseClass}
           placeholder="name@school.org"
         />
       </div>
       <div>
-        <label htmlFor="password" className="mb-1 block text-sm font-medium text-slate-700">
+        <label htmlFor="password" className="mb-1 block text-sm font-medium text-dark">
           Password
         </label>
         <input
@@ -64,18 +71,14 @@ export function SignInForm({ callbackUrl, initialError }: SignInFormProps) {
           type="password"
           autoComplete="current-password"
           required
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none ring-cyan-500 placeholder:text-slate-400 focus:ring-2"
+          className={inputBaseClass}
           placeholder="Enter your password"
         />
       </div>
       {error ? <p className="text-sm text-rose-600">{error}</p> : null}
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="inline-flex w-full items-center justify-center rounded-md bg-cyan-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-70"
-      >
+      <MotionButton type="submit" disabled={isSubmitting} className={`${buttonPrimaryClass} min-h-12 w-full`}>
         {isSubmitting ? "Signing In..." : "Sign In"}
-      </button>
+      </MotionButton>
     </form>
   );
 }

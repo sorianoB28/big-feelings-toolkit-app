@@ -1,0 +1,5 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120' fill='none'>
+  <circle cx='60' cy='60' r='58' fill='#E6E9F2' stroke='white' stroke-width='4'/>
+  <circle cx='60' cy='60' r='44' fill='white' fill-opacity='0.55'/>
+  <text x='60' y='71' text-anchor='middle' font-family='Segoe UI, Arial, sans-serif' font-size='40' font-weight='700' fill='#2D3A5A'>F</text>
+</svg>

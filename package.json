@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:no-env-commits": "node scripts/check-no-env-commits.mjs",
@@ -17,12 +18,19 @@
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "canvas-confetti": "^1.9.4",
     "dotenv": "^17.3.1",
+    "framer-motion": "^12.35.0",
+    "lucide-react": "^0.577.0",
     "next": "^14.2.35",
     "next-auth": "^4.24.13",
     "pg": "^8.18.0",
     "react": "^18",
-    "react-dom": "^18"
+    "react-circular-progressbar": "^2.2.0",
+    "react-dom": "^18",
+    "react-tsparticles": "^2.12.2",
+    "sonner": "^2.0.7",
+    "tsparticles": "^3.9.1"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

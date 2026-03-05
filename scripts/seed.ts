@@ -1,6 +1,8 @@
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
-import { Pool } from "pg";
+import { Pool, type PoolClient } from "pg";
+
+import { BADGES } from "../src/lib/student-options";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config({ path: ".env" });
@@ -39,6 +41,37 @@ type UserRow = {
   is_active: boolean;
   name: string | null;
 };
+
+async function seedBadges(client: PoolClient) {
+  const badgesTableResult = await client.query<{ exists: string | null }>(
+    "select to_regclass('public.badges')::text as exists"
+  );
+
+  if (!badgesTableResult.rows[0]?.exists) {
+    console.log("Skipping badges seed: public.badges table not found.");
+    return;
+  }
+
+  for (const badge of BADGES) {
+    await client.query(
+      `
+        insert into badges (key, title, description, icon_key, tier, active)
+        values ($1, $2, $3, $4, $5, true)
+        on conflict (key)
+        do update
+        set
+          title = excluded.title,
+          description = excluded.description,
+          icon_key = excluded.icon_key,
+          tier = excluded.tier,
+          active = true
+      `,
+      [badge.key, badge.title, badge.description, badge.iconKey, badge.tier]
+    );
+  }
+
+  console.log(`Seeded ${BADGES.length} badge definitions.`);
+}
 
 async function main() {
   const databaseUrl = getRequiredEnv("DATABASE_URL");
@@ -161,6 +194,8 @@ async function main() {
       const createdUser = insertedUserResult.rows[0];
       console.log(`Created admin user: ${createdUser.email} (${createdUser.id})`);
     }
+
+    await seedBadges(client);
 
     await client.query("commit");
     console.log("Seed completed successfully.");
