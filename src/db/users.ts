@@ -1,6 +1,6 @@
 import "server-only";
 
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { db } from "@/db";
 import type { SignInErrorCode } from "@/lib/auth/sign-in-errors";
 import type { AppRole } from "@/types/auth";

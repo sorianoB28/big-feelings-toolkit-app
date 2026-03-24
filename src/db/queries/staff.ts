@@ -1,6 +1,6 @@
 import "server-only";
 
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { db } from "@/db";
 import { isAppRole, type AppRole } from "@/types/auth";
 

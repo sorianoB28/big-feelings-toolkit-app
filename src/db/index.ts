@@ -1,7 +1,7 @@
 import "server-only";
 
 import { Pool } from "pg";
-import { env } from "@/lib/env";
+import { dbEnv } from "@/lib/env";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -15,7 +15,7 @@ const globalForDb = globalThis as typeof globalThis & {
 export const db =
   globalForDb.__dbPool ??
   new Pool({
-    connectionString: env.DATABASE_URL,
+    connectionString: dbEnv.DATABASE_URL,
     max: 10,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 10_000,

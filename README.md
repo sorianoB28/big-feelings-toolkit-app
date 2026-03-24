@@ -84,7 +84,7 @@ The project includes an idempotent seed script at `scripts/seed.ts` that:
 
 1. Creates/reuses a school by name in `schools`
 2. Creates/reuses an admin staff user in `users` linked to that school
-3. Uses bcrypt hashing for the admin password (plaintext is never stored)
+3. Uses bcrypt-compatible hashing via bcryptjs for the admin password (plaintext is never stored)
 
 Required seed environment variables:
 

@@ -1,11 +1,8 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
 import Image from "next/image";
 import { SignInForm } from "@/components/auth/sign-in-form";
 import { BrandHeader } from "@/components/brand/brand-header";
 import { GlassCard } from "@/components/ui/glass-card";
-import { countUsers } from "@/db/users";
-import { authOptions } from "@/lib/auth/options";
 import { getSignInErrorMessage } from "@/lib/auth/sign-in-errors";
 
 type SignInPageProps = {
@@ -15,10 +12,61 @@ type SignInPageProps = {
   };
 };
 
-export default async function SignInPage({ searchParams }: SignInPageProps) {
-  const [session, userCount] = await Promise.all([getServerSession(authOptions), countUsers()]);
+export const dynamic = "force-dynamic";
 
-  if (session?.user) {
+function getAuthPageConfigError(): string | null {
+  const nextAuthSecret = process.env.NEXTAUTH_SECRET?.trim();
+  const nextAuthUrl = process.env.NEXTAUTH_URL?.trim();
+  const databaseUrl = process.env.DATABASE_URL?.trim();
+
+  if (!nextAuthSecret || !nextAuthUrl || !databaseUrl) {
+    return "Sign-in is temporarily unavailable. Please contact your administrator.";
+  }
+
+  try {
+    new URL(nextAuthUrl);
+  } catch {
+    return "Sign-in is temporarily unavailable. Please contact your administrator.";
+  }
+
+  return null;
+}
+
+async function getExistingSessionSafely() {
+  const configError = getAuthPageConfigError();
+
+  if (configError) {
+    return {
+      sessionUser: null,
+      authError: configError,
+    };
+  }
+
+  try {
+    const [{ getServerSession }, { authOptions }] = await Promise.all([
+      import("next-auth"),
+      import("@/lib/auth/options"),
+    ]);
+    const session = await getServerSession(authOptions);
+
+    return {
+      sessionUser: session?.user ?? null,
+      authError: null,
+    };
+  } catch (error) {
+    console.error("Failed to initialize auth session on the sign-in page.", error);
+
+    return {
+      sessionUser: null,
+      authError: "Sign-in is temporarily unavailable. Please try again later.",
+    };
+  }
+}
+
+export default async function SignInPage({ searchParams }: SignInPageProps) {
+  const { sessionUser, authError } = await getExistingSessionSafely();
+
+  if (sessionUser) {
     redirect("/dashboard");
   }
 
@@ -28,7 +76,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
       : "/dashboard";
 
   const errorMessage = getSignInErrorMessage(searchParams?.error);
-  const showNoUsersMessage = userCount === 0;
+  const isFormDisabled = Boolean(authError);
 
   return (
     <section className="relative min-h-screen w-full overflow-hidden">
@@ -58,13 +106,18 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           <BrandHeader variant="compact" />
           <h1 className="mt-5 tracking-tight">Staff Sign In</h1>
           <p className="mt-2 text-sm text-gray-700">Use your district credentials to continue.</p>
-          {showNoUsersMessage ? (
-            <p className="mt-4 rounded-lg border border-primary/20 bg-primary/10 px-3 py-2 text-sm text-primary-dark">
-              No staff accounts found. Run the seed script or ask an admin to create your account.
+          {authError ? (
+            <p className="mt-4 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+              {authError}
             </p>
           ) : null}
           <div className="mt-6">
-            <SignInForm callbackUrl={callbackUrl} initialError={errorMessage} />
+            <SignInForm
+              callbackUrl={callbackUrl}
+              initialError={errorMessage}
+              disabled={isFormDisabled}
+              disabledReason={authError ?? undefined}
+            />
           </div>
         </GlassCard>
       </div>

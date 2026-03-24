@@ -13,14 +13,27 @@ import { getSignInErrorMessage } from "@/lib/auth/sign-in-errors";
 type SignInFormProps = {
   callbackUrl: string;
   initialError?: string;
+  disabled?: boolean;
+  disabledReason?: string;
 };
 
-export function SignInForm({ callbackUrl, initialError }: SignInFormProps) {
+export function SignInForm({
+  callbackUrl,
+  initialError,
+  disabled = false,
+  disabledReason,
+}: SignInFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(initialError ?? "");
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (disabled) {
+      setError(disabledReason ?? "Sign-in is temporarily unavailable. Please try again later.");
+      return;
+    }
+
     setError("");
     setIsSubmitting(true);
 
@@ -28,20 +41,31 @@ export function SignInForm({ callbackUrl, initialError }: SignInFormProps) {
     const email = String(formData.get("email") ?? "");
     const password = String(formData.get("password") ?? "");
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      callbackUrl,
-      redirect: false,
-    });
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        callbackUrl,
+        redirect: false,
+      });
 
-    if (result?.error) {
-      setError(getSignInErrorMessage(result.error) ?? "Sign-in failed. Please try again.");
+      if (result?.error) {
+        setError(getSignInErrorMessage(result.error) ?? "Sign-in failed. Please try again.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!result?.ok || !result.url) {
+        setError("Sign-in is temporarily unavailable. Please try again.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      window.location.href = result.url;
+    } catch {
+      setError("Sign-in is temporarily unavailable. Please try again.");
       setIsSubmitting(false);
-      return;
     }
-
-    window.location.href = result?.url ?? callbackUrl;
   }
 
   return (
@@ -57,6 +81,7 @@ export function SignInForm({ callbackUrl, initialError }: SignInFormProps) {
           type="email"
           autoComplete="email"
           required
+          disabled={disabled || isSubmitting}
           className={inputBaseClass}
           placeholder="name@school.org"
         />
@@ -71,13 +96,18 @@ export function SignInForm({ callbackUrl, initialError }: SignInFormProps) {
           type="password"
           autoComplete="current-password"
           required
+          disabled={disabled || isSubmitting}
           className={inputBaseClass}
           placeholder="Enter your password"
         />
       </div>
       {error ? <p className="text-sm text-rose-600">{error}</p> : null}
-      <MotionButton type="submit" disabled={isSubmitting} className={`${buttonPrimaryClass} min-h-12 w-full`}>
-        {isSubmitting ? "Signing In..." : "Sign In"}
+      <MotionButton
+        type="submit"
+        disabled={disabled || isSubmitting}
+        className={`${buttonPrimaryClass} min-h-12 w-full`}
+      >
+        {disabled ? "Sign In Unavailable" : isSubmitting ? "Signing In..." : "Sign In"}
       </MotionButton>
     </form>
   );

@@ -2,12 +2,11 @@ import "server-only";
 
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { verifyUserCredentials } from "@/db/users";
-import { env } from "@/lib/env";
+import { authEnv } from "@/lib/env";
 import type { AppRole } from "@/types/auth";
 
 export const authOptions: NextAuthOptions = {
-  secret: env.NEXTAUTH_SECRET,
+  secret: authEnv.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
   },
@@ -29,6 +28,8 @@ export const authOptions: NextAuthOptions = {
           throw new Error("invalid_credentials");
         }
 
+        // Avoid loading the database module unless a credentials sign-in is actually attempted.
+        const { verifyUserCredentials } = await import("@/db/users");
         const result = await verifyUserCredentials(email, password);
 
         if (result.error) {

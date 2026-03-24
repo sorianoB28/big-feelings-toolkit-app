@@ -2,7 +2,7 @@ import "server-only";
 
 type RequiredEnvVar = "DATABASE_URL" | "NEXTAUTH_SECRET" | "NEXTAUTH_URL";
 
-function getRequiredEnvVar(name: RequiredEnvVar): string {
+export function getRequiredEnvVar(name: RequiredEnvVar): string {
   const value = process.env[name];
 
   if (!value || value.trim().length === 0) {
@@ -12,7 +12,7 @@ function getRequiredEnvVar(name: RequiredEnvVar): string {
   return value;
 }
 
-function getRequiredUrl(name: "NEXTAUTH_URL"): string {
+export function getRequiredUrl(name: "NEXTAUTH_URL"): string {
   const value = getRequiredEnvVar(name);
 
   try {
@@ -25,8 +25,14 @@ function getRequiredUrl(name: "NEXTAUTH_URL"): string {
   return value;
 }
 
-export const env = {
+export const dbEnv = {
   DATABASE_URL: getRequiredEnvVar("DATABASE_URL"),
+} as const;
+
+export const authEnv = {
   NEXTAUTH_SECRET: getRequiredEnvVar("NEXTAUTH_SECRET"),
+} as const;
+
+export const appEnv = {
   NEXTAUTH_URL: getRequiredUrl("NEXTAUTH_URL"),
 } as const;
