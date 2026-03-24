@@ -40,11 +40,15 @@ export function FeelingsStep({
   );
 
   return (
-    <div>
-      <p className="text-lg font-semibold text-dark">Pick 1-2 vibe words</p>
-      <p className="mt-1 text-sm text-gray-700">
-        Selected {selectedFeelings.length} of {maxSelections}
-      </p>
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm font-medium text-gray-700">
+          Pick {maxSelections === 1 ? "1 vibe word" : "up to 2 vibe words"}.
+        </p>
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
+          {selectedFeelings.length} of {maxSelections} selected
+        </p>
+      </div>
 
       <label htmlFor="feeling-search" className="sr-only">
         Search feelings
@@ -58,7 +62,7 @@ export function FeelingsStep({
         className="mt-3 min-h-11 w-full rounded-lg border border-border-soft bg-white px-3 py-2 text-sm text-dark placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
       />
 
-      <div className="mt-4 rounded-xl border border-border-soft bg-slate-50 p-3">
+      <div className="rounded-xl border border-border-soft bg-slate-50 p-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Selected</p>
         <div className="mt-2 flex min-h-9 flex-wrap gap-2">
           {selectedFeelingItems.length > 0 ? (
@@ -77,7 +81,7 @@ export function FeelingsStep({
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {filteredFeelings.map((feeling) => {
           const selected = selectedFeelings.includes(feeling.id);
           const atLimit = !selected && selectedFeelings.length >= maxSelections;
@@ -103,7 +107,7 @@ export function FeelingsStep({
       </div>
 
       {filteredFeelings.length < 1 ? (
-        <p className="mt-3 text-sm text-gray-600">No feelings match that search.</p>
+        <p className="text-sm text-gray-600">No feelings match that search.</p>
       ) : null}
     </div>
   );

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { ArrowRight } from "lucide-react";
 import { StudentCheckinHistoryTimeline } from "@/components/checkins/student-checkin-history-timeline";
 import { FlashToast } from "@/components/ui/flash-toast";
 import { buttonPrimaryClass, buttonSecondaryClass } from "@/components/ui/form-styles";
@@ -21,7 +22,10 @@ type StudentDetailsPageProps = {
   };
 };
 
-export default async function StudentDetailsPage({ params, searchParams }: StudentDetailsPageProps) {
+export default async function StudentDetailsPage({
+  params,
+  searchParams,
+}: StudentDetailsPageProps) {
   const user = await requireUser();
   const student = await getAccessibleStudentById({
     actorUserId: user.id,
@@ -31,6 +35,7 @@ export default async function StudentDetailsPage({ params, searchParams }: Stude
   if (!student) {
     notFound();
   }
+
   const [checkinHistory, activeCheckin] = await Promise.all([
     getStudentCheckinHistory(student.id),
     getActiveCheckinForStudent(student.id),
@@ -48,7 +53,12 @@ export default async function StudentDetailsPage({ params, searchParams }: Stude
   if (student.themeKey) {
     studentHomeQuery.set("theme", student.themeKey);
   }
+
   const studentHomeHref = `/student?${studentHomeQuery.toString()}`;
+  const checkinActionHref = activeCheckin
+    ? `/students/${student.id}/checkin/tools?checkinId=${encodeURIComponent(activeCheckin.id)}`
+    : `/students/${student.id}/checkin/start`;
+  const checkinActionLabel = activeCheckin ? "Resume Check-In" : "Start Check-In";
 
   return (
     <section className="app-card p-6 sm:p-8">
@@ -57,20 +67,30 @@ export default async function StudentDetailsPage({ params, searchParams }: Stude
       {searchParams?.saved === "checkin" || searchParams?.message === "checkin-saved" ? (
         <FlashToast message="Check-in saved." />
       ) : null}
+
       {activeCheckin ? (
-        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+        <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm font-semibold text-amber-900">Active check-in in progress.</p>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-800">
+                Check-In In Progress
+              </p>
+              <p className="mt-1 text-sm font-medium text-amber-900">
+                Resume this student&apos;s active check-in to keep the classroom flow moving.
+              </p>
+            </div>
             <Link
-              href={`/students/${student.id}/checkin/tools?checkinId=${activeCheckin.id}`}
-              className="inline-flex min-h-10 items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition duration-[250ms] ease-out hover:bg-primary-dark"
+              href={checkinActionHref}
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-medium text-white shadow-sm transition duration-[250ms] ease-out hover:bg-primary-dark"
             >
-              Resume
+              Resume Check-In
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
       ) : null}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex items-center gap-3">
           {avatar ? (
             <div className="h-12 w-12 overflow-hidden rounded-full border border-gray-200 bg-gray-50 shadow-sm">
@@ -88,7 +108,7 @@ export default async function StudentDetailsPage({ params, searchParams }: Stude
             </div>
           )}
           <div>
-          <h1 className="tracking-tight">{student.displayName}</h1>
+            <h1 className="tracking-tight">{student.displayName}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <p className="text-sm text-gray-700">Student profile details</p>
               {theme ? (
@@ -99,37 +119,30 @@ export default async function StudentDetailsPage({ params, searchParams }: Stude
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex w-full max-w-xl flex-col gap-3 lg:items-end">
           <Link
-            href={`/students/${student.id}/checkin/start`}
-            className={buttonPrimaryClass}
+            href={checkinActionHref}
+            className={`${buttonPrimaryClass} min-h-12 w-full gap-2 px-6 text-base font-semibold lg:w-auto`}
           >
-            Start Check-In
+            {checkinActionLabel}
+            <ArrowRight className="h-4 w-4" />
           </Link>
-          <Link
-            href={`/students/${student.id}/rewards`}
-            className={buttonPrimaryClass}
-          >
-            Rewards
-          </Link>
-          <Link
-            href={`/students/${student.id}/edit`}
-            className={buttonPrimaryClass}
-          >
-            Edit
-          </Link>
-          <Link
-            href={studentHomeHref}
-            className={buttonSecondaryClass}
-          >
-            Student Home
-          </Link>
-          <Link
-            href="/students"
-            className={buttonSecondaryClass}
-          >
-            Back
-          </Link>
+
+          <div className="flex w-full flex-wrap gap-2 lg:w-auto lg:justify-end">
+            <Link href={`/students/${student.id}/rewards`} className={buttonSecondaryClass}>
+              Rewards
+            </Link>
+            <Link href={`/students/${student.id}/edit`} className={buttonSecondaryClass}>
+              Edit
+            </Link>
+            <Link href={studentHomeHref} className={buttonSecondaryClass}>
+              Student Home
+            </Link>
+            <Link href="/students" className={buttonSecondaryClass}>
+              Back
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -150,9 +163,7 @@ export default async function StudentDetailsPage({ params, searchParams }: Stude
           <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
             Staff Notes
           </dt>
-          <dd className="mt-1 whitespace-pre-wrap text-sm text-dark">
-            {student.notes ?? "-"}
-          </dd>
+          <dd className="mt-1 whitespace-pre-wrap text-sm text-dark">{student.notes ?? "-"}</dd>
         </div>
       </dl>
 
@@ -172,4 +183,3 @@ export default async function StudentDetailsPage({ params, searchParams }: Stude
     </section>
   );
 }
-

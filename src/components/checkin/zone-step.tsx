@@ -1,13 +1,11 @@
-﻿"use client";
+"use client";
 
-import { useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { CheckinZoneId } from "@/lib/checkin-options";
 
 type ZoneStepProps = {
   selectedZone: CheckinZoneId | null;
   onSelect: (zone: CheckinZoneId) => void;
-  onAdvance: () => void;
   disabled?: boolean;
 };
 
@@ -53,67 +51,15 @@ const ZONE_CARDS: ZoneCard[] = [
     bgClass: "from-rose-50 to-rose-100",
     glowClass: "bg-rose-300/35",
   },
-];
+] as const;
 
-const SPARKLE_POINTS = [
-  { x: -30, y: -16 },
-  { x: 0, y: -22 },
-  { x: 28, y: -14 },
-  { x: -20, y: 18 },
-  { x: 20, y: 20 },
-];
-
-const AUTO_ADVANCE_DELAY_MS = 260;
-
-export function ZoneStep({ selectedZone, onSelect, onAdvance, disabled = false }: ZoneStepProps) {
+export function ZoneStep({ selectedZone, onSelect, disabled = false }: ZoneStepProps) {
   const reducedMotion = useReducedMotion();
-  const [sparkleZone, setSparkleZone] = useState<CheckinZoneId | null>(null);
-  const [isAdvancing, setIsAdvancing] = useState(false);
-
   const canAnimate = !reducedMotion;
 
-  const sparkleAnimation = useMemo(
-    () => ({
-      initial: { opacity: 0, scale: 0.3, x: 0, y: 0 },
-      animate: (point: { x: number; y: number }) => ({
-        opacity: [0, 0.75, 0],
-        scale: [0.3, 1, 0.4],
-        x: [0, point.x],
-        y: [0, point.y],
-      }),
-      transition: { duration: 0.4, ease: "easeOut" as const },
-    }),
-    []
-  );
-
-  function handleSelect(zoneId: CheckinZoneId) {
-    if (disabled || isAdvancing) {
-      return;
-    }
-
-    onSelect(zoneId);
-
-    if (!canAnimate) {
-      onAdvance();
-      return;
-    }
-
-    setIsAdvancing(true);
-    setSparkleZone(zoneId);
-
-    window.setTimeout(() => {
-      setSparkleZone(null);
-      setIsAdvancing(false);
-      onAdvance();
-    }, AUTO_ADVANCE_DELAY_MS);
-  }
-
   return (
-    <div>
-      <p className="text-2xl font-semibold tracking-tight text-dark">How&apos;s your engine right now?</p>
-      <p className="mt-1 text-sm text-gray-700">Pick the zone that matches this moment.</p>
-
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {ZONE_CARDS.map((zoneCard) => {
           const isSelected = selectedZone === zoneCard.id;
 
@@ -121,7 +67,7 @@ export function ZoneStep({ selectedZone, onSelect, onAdvance, disabled = false }
             <motion.button
               key={zoneCard.id}
               type="button"
-              onClick={() => handleSelect(zoneCard.id)}
+              onClick={() => onSelect(zoneCard.id)}
               whileHover={canAnimate ? { y: -2 } : undefined}
               whileTap={canAnimate ? { scale: 0.99 } : undefined}
               disabled={disabled}
@@ -143,32 +89,28 @@ export function ZoneStep({ selectedZone, onSelect, onAdvance, disabled = false }
               />
 
               <div
-                className={`relative rounded-xl bg-gradient-to-br p-4 ${zoneCard.bgClass} ${
-                  isSelected ? "ring-1 ring-primary/25" : ""
-                }`}
+                className={`relative rounded-xl bg-gradient-to-br p-4 ${
+                  zoneCard.bgClass
+                } ${isSelected ? "ring-1 ring-primary/25" : ""}`}
               >
                 <p className="text-lg font-semibold text-dark">{zoneCard.emoji}</p>
                 <p className="mt-2 text-base font-semibold text-dark">{zoneCard.title}</p>
                 <p className="mt-1 text-sm text-gray-700">{zoneCard.subtitle}</p>
               </div>
-
-              {canAnimate && sparkleZone === zoneCard.id ? (
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                  {SPARKLE_POINTS.map((point, index) => (
-                    <motion.span
-                      key={`${zoneCard.id}-${index}`}
-                      custom={point}
-                      initial={sparkleAnimation.initial}
-                      animate={sparkleAnimation.animate(point)}
-                      transition={sparkleAnimation.transition}
-                      className="absolute h-1.5 w-1.5 rounded-full bg-primary/80"
-                    />
-                  ))}
-                </div>
-              ) : null}
             </motion.button>
           );
         })}
+      </div>
+
+      <div className="rounded-xl border border-border-soft bg-slate-50 px-4 py-3 text-sm text-gray-700">
+        {selectedZone ? (
+          <p>
+            Zone selected. If it looks right, tap{" "}
+            <span className="font-semibold text-dark">Next</span>.
+          </p>
+        ) : (
+          <p>Choose the zone that feels closest right now.</p>
+        )}
       </div>
     </div>
   );

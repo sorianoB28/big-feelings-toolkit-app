@@ -9,6 +9,7 @@ type ToolRunnerPageProps = {
   searchParams?: {
     from?: string;
     zone?: string;
+    intent?: string;
     checkinId?: string;
     studentId?: string;
     themeKey?: string;
@@ -22,6 +23,7 @@ export default function ToolRunnerPage({ params, searchParams }: ToolRunnerPageP
 
   const from = searchParams?.from ?? null;
   const zone = searchParams?.zone ?? null;
+  const intent = searchParams?.intent ?? null;
   const checkinId = searchParams?.checkinId?.trim() ?? null;
   const studentId = searchParams?.studentId?.trim() ?? null;
   const themeKey = searchParams?.themeKey?.trim() ?? null;
@@ -31,6 +33,7 @@ export default function ToolRunnerPage({ params, searchParams }: ToolRunnerPageP
       toolKey={params.toolKey}
       from={from}
       zone={zone}
+      intent={intent}
       checkinId={checkinId}
       studentId={studentId}
       themeKey={themeKey}

@@ -10,6 +10,7 @@ type ToolPageClientProps = {
   toolKey: string;
   from?: string | null;
   zone?: string | null;
+  intent?: string | null;
   checkinId?: string | null;
   studentId?: string | null;
   themeKey?: string | null;
@@ -19,6 +20,7 @@ export function ToolPageClient({
   toolKey,
   from = null,
   zone = null,
+  intent = null,
   checkinId = null,
   studentId = null,
   themeKey = null,
@@ -68,6 +70,7 @@ export function ToolPageClient({
       ToolComponent={ToolComponent}
       from={from}
       zone={zone}
+      intent={intent}
       checkinId={checkinId}
       studentId={studentId}
       themeKey={themeKey}

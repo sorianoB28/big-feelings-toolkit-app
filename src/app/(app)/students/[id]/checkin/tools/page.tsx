@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { JourneyShell, type JourneySummaryChip } from "@/components/checkin/journey-shell";
+import { getCheckinJourneySummary } from "@/db/queries/checkins";
+import { getAccessibleStudentById } from "@/db/queries/students";
+import { requireUser } from "@/lib/auth/require-user";
 import { toolCategoryIcons, toolIcons } from "@/lib/icons";
 import { TOOL_REGISTRY, TOOL_CATEGORY_LABELS, type ToolDefinition } from "@/lib/tools/registry";
-import { requireUser } from "@/lib/auth/require-user";
-import { getAccessibleStudentById } from "@/db/queries/students";
 
 type CheckinToolsPageProps = {
   params: {
@@ -24,9 +26,20 @@ const TOOL_CATEGORY_ORDER: ToolDefinition["category"][] = [
   "get_support",
 ];
 
+const RESET_INTENT_LABELS: Record<string, string> = {
+  breathe: "Breathe",
+  move: "Move",
+  ground: "Ground",
+  support: "Get Support",
+};
+
 function formatDurationLabel(durationSeconds: number): string {
   const minutes = Math.max(1, Math.round(durationSeconds / 60));
   return `${minutes} min`;
+}
+
+function toTitleCase(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
 }
 
 export default async function CheckinToolsPage({
@@ -44,11 +57,32 @@ export default async function CheckinToolsPage({
   }
 
   const checkinId = searchParams?.checkinId?.trim() ?? "";
-  const zone = searchParams?.zone?.trim() ?? "";
   const intent = searchParams?.intent?.trim() ?? "";
   const themeKey = searchParams?.themeKey?.trim() || student.themeKey || "";
   if (!checkinId) {
     redirect(`/students/${student.id}/checkin/start`);
+  }
+
+  const checkinSummary = await getCheckinJourneySummary(checkinId);
+  const zone = searchParams?.zone?.trim() || checkinSummary?.zone || "";
+  const summaryChips: JourneySummaryChip[] = [];
+
+  if (zone) {
+    summaryChips.push({ label: "Zone", value: toTitleCase(zone) });
+  }
+
+  if (checkinSummary?.feelingWords.length) {
+    summaryChips.push({
+      label: "Vibes",
+      value: checkinSummary.feelingWords.join(", "),
+    });
+  }
+
+  if (intent && RESET_INTENT_LABELS[intent]) {
+    summaryChips.push({
+      label: "Reset",
+      value: RESET_INTENT_LABELS[intent],
+    });
   }
 
   const groupedTools = TOOL_CATEGORY_ORDER.map((category) => ({
@@ -57,21 +91,43 @@ export default async function CheckinToolsPage({
     tools: TOOL_REGISTRY.filter((tool) => tool.category === category),
   }));
 
-  return (
-    <section className="app-card p-6 shadow-sm sm:p-8">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="tracking-tight">Pick your reset</h1>
-          <p className="mt-1 text-sm text-gray-700">
-            {student.displayName}, choose one tool to help your brain and body reset.
-          </p>
-        </div>
-        <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary-dark">
-          Active Check-In
-        </span>
-      </div>
+  const finishParams = new URLSearchParams({
+    checkinId,
+  });
 
-      <div className="mt-6 space-y-8">
+  if (zone) {
+    finishParams.set("zone", zone);
+  }
+  if (intent) {
+    finishParams.set("intent", intent);
+  }
+
+  return (
+    <JourneyShell
+      eyebrow="Check-in Journey"
+      title="Choose a reset tool"
+      description={`${student.displayName}, pick one tool to help your brain and body reset.`}
+      progressLabel="Step 2 of 3"
+      progressPercent={67}
+      summaryChips={summaryChips}
+      footer={
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <Link
+            href={`/students/${student.id}/checkin/start`}
+            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-300 bg-surface px-5 py-2 text-sm font-medium text-dark shadow-sm transition duration-[250ms] ease-out hover:bg-gray-100"
+          >
+            Back
+          </Link>
+          <Link
+            href={`/students/${student.id}/checkin/finish?${finishParams.toString()}`}
+            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-300 bg-surface px-5 py-2 text-sm font-medium text-dark shadow-sm transition duration-[250ms] ease-out hover:bg-gray-100"
+          >
+            Skip tool
+          </Link>
+        </div>
+      }
+    >
+      <div className="space-y-8">
         {groupedTools.map((group) => {
           const CategoryIcon = toolCategoryIcons[group.category];
 
@@ -135,21 +191,6 @@ export default async function CheckinToolsPage({
           );
         })}
       </div>
-
-      <div className="mt-8 flex flex-col gap-3 border-t border-border-soft pt-5 sm:flex-row sm:justify-between">
-        <Link
-          href={`/students/${student.id}/checkin/start`}
-          className="inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-300 bg-surface px-5 py-2 text-sm font-medium text-dark shadow-sm transition duration-[250ms] ease-out hover:bg-gray-100"
-        >
-          Back
-        </Link>
-        <Link
-          href={`/students/${student.id}/checkin/finish?checkinId=${encodeURIComponent(checkinId)}`}
-          className="inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-300 bg-surface px-5 py-2 text-sm font-medium text-dark shadow-sm transition duration-[250ms] ease-out hover:bg-gray-100"
-        >
-          Skip tool
-        </Link>
-      </div>
-    </section>
+    </JourneyShell>
   );
 }

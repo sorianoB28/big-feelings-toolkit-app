@@ -27,6 +27,7 @@ type ToolRunnerProps = {
   ToolComponent: ComponentType<ToolRuntimeProps>;
   from?: string | null;
   zone?: string | null;
+  intent?: string | null;
   checkinId?: string | null;
   studentId?: string | null;
   themeKey?: string | null;
@@ -56,6 +57,7 @@ export function ToolRunner({
   ToolComponent,
   from = null,
   zone = null,
+  intent = null,
   checkinId = null,
   studentId = null,
   themeKey = null,
@@ -73,14 +75,33 @@ export function ToolRunner({
   const fromCheckin = from === "checkin";
   const safeCheckinId = checkinId?.trim() ?? "";
   const safeStudentId = studentId?.trim() ?? "";
+  const safeIntent = intent?.trim() ?? "";
   const hasCheckinContext =
     fromCheckin && safeCheckinId.length > 0 && safeStudentId.length > 0;
+  const checkinToolsParams = new URLSearchParams({
+    checkinId: safeCheckinId,
+  });
+  if (zone) {
+    checkinToolsParams.set("zone", zone);
+  }
+  if (safeIntent) {
+    checkinToolsParams.set("intent", safeIntent);
+  }
   const checkinToolsHref = `/students/${encodeURIComponent(
     safeStudentId
-  )}/checkin/tools?checkinId=${encodeURIComponent(safeCheckinId)}`;
+  )}/checkin/tools?${checkinToolsParams.toString()}`;
+  const checkinFinishParams = new URLSearchParams({
+    checkinId: safeCheckinId,
+  });
+  if (zone) {
+    checkinFinishParams.set("zone", zone);
+  }
+  if (safeIntent) {
+    checkinFinishParams.set("intent", safeIntent);
+  }
   const checkinFinishHref = `/students/${encodeURIComponent(
     safeStudentId
-  )}/checkin/finish?checkinId=${encodeURIComponent(safeCheckinId)}`;
+  )}/checkin/finish?${checkinFinishParams.toString()}`;
   const { enabled: ambientSoundEnabled, toggleEnabled: toggleAmbientSound } = useAmbientSound({
     enabled: false,
     volume: 0.22,

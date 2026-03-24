@@ -11,6 +11,12 @@ type ToolUseRow = {
   id: string;
 };
 
+type ToolUseRecapRow = {
+  tool_key: string;
+  tool_label: string;
+  helpful_rating: string | null;
+};
+
 type ToolUseColumnRow = {
   column_name: string;
 };
@@ -26,6 +32,12 @@ type CreateToolUseForCheckinInput = {
 };
 
 const OPTIONAL_TOOL_USE_COLUMNS = ["duration_seconds", "helpful_rating"] as const;
+
+export type CheckinToolUseRecap = {
+  toolKey: string;
+  toolLabel: string;
+  helpfulRating: number | null;
+};
 
 function clampDurationSeconds(value: number): number {
   if (!Number.isFinite(value)) {
@@ -45,6 +57,54 @@ function normalizeHelpfulRating(value: number | null): number | null {
   }
 
   return value;
+}
+
+function parseHelpfulRating(value: string | null): number | null {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isInteger(parsed) || parsed < 1 || parsed > 5) {
+    return null;
+  }
+
+  return parsed;
+}
+
+export async function getLatestToolUseRecapForCheckin(
+  checkinId: string
+): Promise<CheckinToolUseRecap | null> {
+  const result = await db.query<ToolUseRecapRow>(
+    `
+      select
+        tu.tool_key::text as tool_key,
+        tu.tool_label::text as tool_label,
+        to_jsonb(tu)->>'helpful_rating' as helpful_rating
+      from tool_uses tu
+      where tu.checkin_id = $1
+      order by
+        coalesce(
+          (to_jsonb(tu)->>'updated_at')::timestamptz,
+          (to_jsonb(tu)->>'created_at')::timestamptz,
+          'epoch'::timestamptz
+        ) desc,
+        tu.tool_label asc
+      limit 1
+    `,
+    [checkinId]
+  );
+
+  const row = result.rows[0];
+  if (!row) {
+    return null;
+  }
+
+  return {
+    toolKey: row.tool_key,
+    toolLabel: row.tool_label,
+    helpfulRating: parseHelpfulRating(row.helpful_rating),
+  };
 }
 
 export async function createToolUseForCheckin(input: CreateToolUseForCheckinInput): Promise<{

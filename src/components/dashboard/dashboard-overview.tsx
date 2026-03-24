@@ -60,11 +60,11 @@ export function DashboardOverview({ displayName, stats }: DashboardOverviewProps
       <section className="mt-8">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Quick actions</h2>
         <div className="mt-3 flex flex-wrap gap-3">
-          <Link href="/checkins" className={buttonPrimaryClass}>
-            Start Check-in
+          <Link href="/students?startCheckin=1" className={buttonPrimaryClass}>
+            Start Check-In
           </Link>
           <Link href="/students" className={buttonSecondaryClass}>
-            View Students
+            Manage Students
           </Link>
           <Link href="/tools" className={buttonSecondaryClass}>
             Open Tools

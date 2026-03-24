@@ -202,21 +202,20 @@ export function BodyStep({ mode, value, onChange, disabled = false }: BodyStepPr
   }
 
   return (
-    <div>
-      <p className="text-lg font-semibold text-dark">Where do you feel it?</p>
-      <p className="mt-1 text-sm text-gray-700">
+    <div className="space-y-4">
+      <p className="text-sm text-gray-700">
         {mode === "quick"
           ? "Tap body areas. Tap again to remove."
           : "Tap an area to pick quick body clues."}
       </p>
 
-      <div className="mt-4 rounded-xl border border-border-soft bg-slate-50 p-3">
+      <div className="rounded-xl border border-border-soft bg-slate-50 p-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
           Selected areas: {selectedAreaCount}
         </p>
       </div>
 
-      <div className="mt-4 flex justify-center">
+      <div className="flex justify-center">
         <div className="relative h-80 w-56 rounded-2xl border border-border-soft bg-white shadow-sm">
           <svg
             viewBox="0 0 224 320"
@@ -254,7 +253,7 @@ export function BodyStep({ mode, value, onChange, disabled = false }: BodyStepPr
       </div>
 
       {mode === "full" ? (
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {AREA_ORDER.map((area) => {
             const labels = value[area].clues
               .map((choiceId) => AREA_OPTIONS[area].find((option) => option.id === choiceId)?.label)

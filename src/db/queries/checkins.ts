@@ -71,10 +71,32 @@ type ActiveCheckinRow = {
   started_at: string;
 };
 
+type ActiveCheckinByStudentRow = {
+  id: string;
+  student_id: string;
+  started_at: string;
+};
+
 type CreatedCheckinRow = {
   id: string;
   started_at: string;
   ended_at: string | null;
+};
+
+type CheckinJourneySummaryRow = {
+  id: string;
+  student_id: string;
+  zone: string;
+  feeling_words: unknown;
+  ended_at: string | null;
+};
+
+export type CheckinJourneySummary = {
+  id: string;
+  studentId: string;
+  zone: string;
+  feelingWords: string[];
+  endedAt: string | null;
 };
 
 function mapCheckinRow(row: CheckinRow): Checkin {
@@ -305,6 +327,38 @@ export async function getCheckinById(checkinId: string): Promise<Checkin | null>
   return row ? mapCheckinRow(row) : null;
 }
 
+export async function getCheckinJourneySummary(
+  checkinId: string
+): Promise<CheckinJourneySummary | null> {
+  const result = await db.query<CheckinJourneySummaryRow>(
+    `
+      select
+        c.id::text as id,
+        c.student_id::text as student_id,
+        c.zone::text as zone,
+        c.feeling_words,
+        c.ended_at::text as ended_at
+      from checkins c
+      where c.id = $1
+      limit 1
+    `,
+    [checkinId]
+  );
+
+  const row = result.rows[0];
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    studentId: row.student_id,
+    zone: row.zone,
+    feelingWords: parseFeelingWords(row.feeling_words),
+    endedAt: row.ended_at,
+  };
+}
+
 export async function updateCheckinReturnToClassStep(
   input: UpdateCheckinReturnToClassStepInput
 ): Promise<Checkin> {
@@ -500,6 +554,38 @@ export async function getActiveCheckinForStudent(
     id: row.id,
     startedAt: row.started_at,
   };
+}
+
+export async function listActiveCheckinsForStudents(studentIds: string[]): Promise<
+  Record<string, { id: string; startedAt: string }>
+> {
+  if (studentIds.length < 1) {
+    return {};
+  }
+
+  const result = await db.query<ActiveCheckinByStudentRow>(
+    `
+      select distinct on (c.student_id)
+        c.id::text as id,
+        c.student_id::text as student_id,
+        c.started_at::text as started_at
+      from checkins c
+      where c.student_id::text = any($1::text[])
+        and c.ended_at is null
+      order by c.student_id, c.started_at desc
+    `,
+    [studentIds]
+  );
+
+  return Object.fromEntries(
+    result.rows.map((row) => [
+      row.student_id,
+      {
+        id: row.id,
+        startedAt: row.started_at,
+      },
+    ])
+  );
 }
 
 export async function updateActiveCheckinStartData(input: {
