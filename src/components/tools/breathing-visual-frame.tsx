@@ -7,8 +7,11 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { useClassroomSafeMode } from "@/hooks/useClassroomSafeMode";
 import { cn } from "@/lib/utils";
 
-export const BREATHING_BASE_STROKE = "#cfd4da";
-export const BREATHING_ACTIVE_STROKE = "#862633";
+export const BREATHING_BASE_STROKE = "#D8E5FF";
+export const BREATHING_ACTIVE_STROKE = "#4F8CFF";
+export const BREATHING_ACTIVE_GLOW = "rgba(79, 140, 255, 0.34)";
+export const BREATHING_FILL_START = "rgba(124, 108, 255, 0.24)";
+export const BREATHING_FILL_END = "rgba(94, 211, 179, 0.5)";
 export const BREATHING_STROKE_WIDTH = 4;
 
 type BreathingVisualFrameProps = {
@@ -56,8 +59,8 @@ export function BreathingVisualFrame({
             }
           />
           <motion.div
-            className="pointer-events-none absolute -bottom-10 -right-8 h-40 w-40 rounded-full bg-gray-500 blur-3xl"
-            style={{ opacity: 0.05 }}
+            className="pointer-events-none absolute -bottom-10 -right-8 h-40 w-40 rounded-full bg-secondary blur-3xl"
+            style={{ backgroundColor: "#7C6CFF", opacity: 0.05 }}
             animate={
               prefersReducedMotion
                 ? undefined

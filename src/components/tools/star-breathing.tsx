@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BREATHING_ACTIVE_STROKE,
+  BREATHING_ACTIVE_GLOW,
   BREATHING_BASE_STROKE,
   BREATHING_STROKE_WIDTH,
   BreathingVisualFrame,
@@ -165,7 +166,7 @@ export default function StarBreathing({
               strokeLinejoin="round"
               pathLength={1}
               strokeDasharray={`${traceStrokeLength} 1`}
-              style={{ filter: "drop-shadow(0 0 4px rgba(134, 38, 51, 0.35))" }}
+              style={{ filter: `drop-shadow(0 0 4px ${BREATHING_ACTIVE_GLOW})` }}
             />
           </svg>
         </div>

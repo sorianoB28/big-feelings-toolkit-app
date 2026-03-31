@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useClassroomSafeMode } from "@/hooks/useClassroomSafeMode";
-import { getMotionPreferences } from "@/lib/motion";
+import { getRouteTransitionPreferences } from "@/lib/motion";
 
 type PageTransitionProps = {
   children: React.ReactNode;
@@ -13,7 +13,10 @@ export function PageTransition({ children }: PageTransitionProps) {
   const pathname = usePathname();
   const prefersReducedMotion = useReducedMotion();
   const { classroomSafeMode } = useClassroomSafeMode();
-  const motionPreferences = getMotionPreferences(classroomSafeMode, Boolean(prefersReducedMotion));
+  const motionPreferences = getRouteTransitionPreferences(
+    classroomSafeMode,
+    Boolean(prefersReducedMotion)
+  );
 
   return (
     <AnimatePresence mode="wait" initial={false}>
@@ -22,8 +25,9 @@ export function PageTransition({ children }: PageTransitionProps) {
         initial="initial"
         animate="animate"
         exit="exit"
-        variants={motionPreferences.pageVariants}
-        transition={motionPreferences.transitionDefaults}
+        variants={motionPreferences.variants}
+        transition={motionPreferences.transition}
+        className="min-h-full"
       >
         {children}
       </motion.div>

@@ -5,7 +5,11 @@ import { getCheckinJourneySummary } from "@/db/queries/checkins";
 import { getAccessibleStudentById } from "@/db/queries/students";
 import { requireUser } from "@/lib/auth/require-user";
 import { toolCategoryIcons, toolIcons } from "@/lib/icons";
-import { TOOL_REGISTRY, TOOL_CATEGORY_LABELS, type ToolDefinition } from "@/lib/tools/registry";
+import {
+  TOOL_CATEGORY_LABELS,
+  getTools,
+  type ToolDefinition,
+} from "@/lib/tools/registry";
 
 type CheckinToolsPageProps = {
   params: {
@@ -88,8 +92,8 @@ export default async function CheckinToolsPage({
   const groupedTools = TOOL_CATEGORY_ORDER.map((category) => ({
     category,
     label: TOOL_CATEGORY_LABELS[category],
-    tools: TOOL_REGISTRY.filter((tool) => tool.category === category),
-  }));
+    tools: getTools("demo").filter((tool) => tool.category === category),
+  })).filter((group) => group.tools.length > 0);
 
   const finishParams = new URLSearchParams({
     checkinId,

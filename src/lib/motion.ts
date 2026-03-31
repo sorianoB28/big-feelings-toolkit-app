@@ -5,10 +5,21 @@ export const transitionDefaults: Transition = {
   ease: "easeOut",
 };
 
+export const routeTransitionDefaults: Transition = {
+  duration: 0.26,
+  ease: "easeOut",
+};
+
 export const pageVariants: Variants = {
   initial: { opacity: 0, y: 10 },
   animate: { opacity: 1, y: 0 },
   exit: { opacity: 0, y: 6 },
+};
+
+export const routeVariants: Variants = {
+  initial: { opacity: 0, x: 12, y: 8 },
+  animate: { opacity: 1, x: 0, y: 0 },
+  exit: { opacity: 0, x: -8, y: 4 },
 };
 
 export const cardHover = {
@@ -136,5 +147,47 @@ export function getMotionPreferences(
       standard: 0.3,
       page: 0.35,
     },
+  };
+}
+
+export function getRouteTransitionPreferences(
+  classroomSafeMode: boolean,
+  prefersReducedMotion = false
+): {
+  disableMotion: boolean;
+  transition: Transition;
+  variants: Variants;
+} {
+  if (prefersReducedMotion) {
+    return {
+      disableMotion: true,
+      transition: { duration: 0 },
+      variants: {
+        initial: { opacity: 1, x: 0, y: 0 },
+        animate: { opacity: 1, x: 0, y: 0 },
+        exit: { opacity: 1, x: 0, y: 0 },
+      },
+    };
+  }
+
+  if (classroomSafeMode) {
+    return {
+      disableMotion: false,
+      transition: {
+        duration: 0.18,
+        ease: "easeOut",
+      },
+      variants: {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
+      },
+    };
+  }
+
+  return {
+    disableMotion: false,
+    transition: routeTransitionDefaults,
+    variants: routeVariants,
   };
 }

@@ -9,24 +9,37 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: "#862633",
-        "primary-dark": "#6e1f2a",
-        dark: "#231F20",
+        primary: "#4F8CFF",
+        "primary-dark": "#356FE0",
+        secondary: "#7C6CFF",
+        accent: "#5ED3B3",
+        dark: "#172033",
         surface: "#ffffff",
-        background: "#E6E6E6",
-        "border-soft": "#e3e3e3",
+        background: "#F7FAFC",
+        "background-end": "#EAF2FF",
+        "border-soft": "#D8E5FF",
+      },
+      backgroundImage: {
+        "gradient-bg": "linear-gradient(180deg, #F7FAFC 0%, #EAF2FF 100%)",
+        "gradient-card":
+          "linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.72) 100%)",
+        "gradient-accent":
+          "linear-gradient(135deg, rgba(79,140,255,0.18) 0%, rgba(124,108,255,0.16) 52%, rgba(94,211,179,0.22) 100%)",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "Segoe UI", "Roboto", "sans-serif"],
+        sans: ["var(--font-geist-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["var(--font-geist-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
       },
       borderRadius: {
-        lg: "0.5rem",
-        xl: "0.75rem",
+        lg: "1rem",
+        xl: "1.5rem",
+        "2xl": "2rem",
       },
       boxShadow: {
-        sm: "0 1px 2px 0 rgb(35 31 32 / 0.08)",
-        md: "0 6px 16px -8px rgb(35 31 32 / 0.22)",
-        lg: "0 18px 30px -16px rgb(35 31 32 / 0.28)",
+        sm: "0 10px 24px -18px rgb(79 140 255 / 0.24)",
+        md: "0 18px 40px -24px rgb(79 140 255 / 0.28)",
+        lg: "0 30px 72px -36px rgb(53 111 224 / 0.34)",
+        glass: "0 24px 60px -32px rgb(23 32 51 / 0.22)",
       },
     },
   },

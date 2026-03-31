@@ -1,0 +1,144 @@
+
+> big-feelings-toolkit-app@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.5s
+ ○ Compiling /toolkit ...
+ ✓ Compiled /toolkit in 12.3s (1892 modules)
+ GET /toolkit 200 in 12962ms
+ GET /toolkit 200 in 155ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1877ms (1883 modules)
+ GET / 307 in 2453ms
+ GET /toolkit 200 in 484ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 924ms (1870 modules)
+ GET /_next/static/css/app/layout.css?v=1774891643067 404 in 1387ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 1378ms
+ GET /_next/static/chunks/main-app.js?v=1774891643067 404 in 1404ms
+ GET /_next/static/chunks/app/(public)/toolkit/page.js 404 in 1365ms
+ GET /_next/static/chunks/app/(public)/toolkit/layout.js 404 in 1362ms
+ GET /_next/static/chunks/app/(public)/layout.js 404 in 1350ms
+ GET /_next/static/chunks/app/not-found.js 404 in 38ms
+ GET /toolkit 200 in 139ms
+ GET /_next/static/css/app/layout.css?v=1774891683397 404 in 134ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 184ms
+ GET /_next/static/chunks/main-app.js?v=1774891683397 404 in 202ms
+ GET /_next/static/chunks/app/(public)/toolkit/layout.js 404 in 196ms
+ GET /_next/static/chunks/app/(public)/toolkit/page.js 404 in 202ms
+ GET /_next/static/chunks/app/(public)/layout.js 404 in 212ms
+ GET /_next/static/chunks/app/not-found.js 404 in 43ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, lstat 'C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\vendor-chunks\cookie.js'
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving './vendor-chunks/cookie' in C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server for build dependencies doesn't lead to expected result 'C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\vendor-chunks\cookie.js', but to 'Error: Can't resolve './vendor-chunks/cookie' in 'C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ./vendor-chunks/cookie (expected C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\vendor-chunks\cookie.js)
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\webpack-runtime.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\webpack-runtime.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\app\(public)\toolkit\page.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\app\(public)\toolkit\page.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\server\require.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\server\require.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\server\load-components.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\server\load-components.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\utils.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\utils.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\loaders\next-app-loader.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\loaders\next-app-loader.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\webpack\bundle5.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\webpack\bundle5.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\webpack\webpack.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\webpack\webpack.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\plugins\define-env-plugin.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\plugins\define-env-plugin.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\swc\index.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\swc\index.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w>  at resolve commonjs C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving './vendor-chunks/oidc-token-hash' in C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server for build dependencies doesn't lead to expected result 'C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\vendor-chunks\oidc-token-hash.js', but to 'Error: Can't resolve './vendor-chunks/oidc-token-hash' in 'C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ./vendor-chunks/oidc-token-hash (expected C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\vendor-chunks\oidc-token-hash.js)
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\webpack-runtime.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\webpack-runtime.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\app\(public)\toolkit\page.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\app\(public)\toolkit\page.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\server\require.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\server\require.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\server\load-components.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\server\load-components.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\utils.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\utils.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\loaders\next-app-loader.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\loaders\next-app-loader.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\webpack\bundle5.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\webpack\bundle5.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\webpack\webpack.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\webpack\webpack.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\plugins\define-env-plugin.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\plugins\define-env-plugin.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\swc\index.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\swc\index.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w>  at resolve commonjs C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving './vendor-chunks/preact' in C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server for build dependencies doesn't lead to expected result 'C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\vendor-chunks\preact.js', but to 'Error: Can't resolve './vendor-chunks/preact' in 'C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ./vendor-chunks/preact (expected C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\vendor-chunks\preact.js)
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\webpack-runtime.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\webpack-runtime.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\app\(public)\toolkit\page.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\app\(public)\toolkit\page.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\server\require.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\server\require.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\server\load-components.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\server\load-components.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\utils.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\utils.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\loaders\next-app-loader.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\loaders\next-app-loader.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\webpack\bundle5.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\webpack\bundle5.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\webpack\webpack.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\webpack\webpack.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\plugins\define-env-plugin.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\plugins\define-env-plugin.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\swc\index.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\swc\index.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w>  at resolve commonjs C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving './vendor-chunks/preact-render-to-string' in C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server for build dependencies doesn't lead to expected result 'C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\vendor-chunks\preact-render-to-string.js', but to 'Error: Can't resolve './vendor-chunks/preact-render-to-string' in 'C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ./vendor-chunks/preact-render-to-string (expected C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\vendor-chunks\preact-render-to-string.js)
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\webpack-runtime.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\webpack-runtime.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\app\(public)\toolkit\page.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\.next\server\app\(public)\toolkit\page.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\server\require.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\server\require.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\server\load-components.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\server\load-components.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\utils.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\utils.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\loaders\next-app-loader.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\loaders\next-app-loader.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\webpack\bundle5.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\webpack\bundle5.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\webpack\webpack.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\compiled\webpack\webpack.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\plugins\define-env-plugin.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\plugins\define-env-plugin.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\swc\index.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\swc\index.js
+<w>  at file dependencies C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w>  at file C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w>  at resolve commonjs C:\Users\bryan\Desktop\big-feelings-toolkit-app\big-feelings-toolkit-app\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js

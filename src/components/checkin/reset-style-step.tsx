@@ -60,6 +60,7 @@ export function ResetStyleStep({
       intent: selectedIntent,
       mode,
       bodyClues,
+      experience: "demo",
     });
   }, [bodyClues, mode, selectedIntent, zone]);
 

@@ -41,7 +41,7 @@ export function GlassCard({
   return (
     <motion.div
       className={cn(
-        "relative overflow-hidden rounded-2xl border text-dark",
+        "gradient-border highlight-sheen relative overflow-hidden rounded-2xl border text-dark",
         variantClassNames[variant],
         className
       )}
@@ -53,6 +53,20 @@ export function GlassCard({
       transition={transition ?? motionPreferences.transitionDefaults}
       {...props}
     >
+      <motion.div
+        className="pointer-events-none absolute inset-x-[14%] top-0 h-16 rounded-full bg-white/55 blur-2xl"
+        animate={
+          motionPreferences.disableMotion
+            ? undefined
+            : { opacity: [0.42, 0.72, 0.42], scaleX: [0.94, 1.02, 0.94] }
+        }
+        transition={
+          motionPreferences.disableMotion
+            ? undefined
+            : { duration: 7.5, ease: "easeInOut", repeat: Infinity }
+        }
+      />
+
       {accent ? (
         <>
           <motion.div
@@ -66,6 +80,19 @@ export function GlassCard({
               motionPreferences.disableMotion
                 ? undefined
                 : { duration: 10, ease: "easeInOut", repeat: Infinity }
+            }
+          />
+          <motion.div
+            className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/2 bg-[linear-gradient(120deg,transparent_16%,rgba(255,255,255,0.48)_48%,transparent_84%)] opacity-25 blur-2xl"
+            animate={
+              motionPreferences.disableMotion
+                ? undefined
+                : { x: ["0%", "168%", "0%"], opacity: [0.14, 0.28, 0.14] }
+            }
+            transition={
+              motionPreferences.disableMotion
+                ? undefined
+                : { duration: 10.5, ease: "easeInOut", repeat: Infinity }
             }
           />
           <motion.div

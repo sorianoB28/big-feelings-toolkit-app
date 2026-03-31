@@ -119,6 +119,7 @@ export function ResetJourney() {
     return recommendTools({
       zone: selectedZone,
       intent: selectedChoice,
+      experience: "demo",
     });
   }, [selectedChoice, selectedZone]);
 

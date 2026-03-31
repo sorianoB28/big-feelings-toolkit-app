@@ -18,7 +18,7 @@ export async function triggerCompletionReward(): Promise<boolean> {
       gravity: 1.05,
       drift: 0,
       disableForReducedMotion: true,
-      colors: ["#862633", "#A94753", "#D8D8D8", "#F5F5F5"],
+      colors: ["#4F8CFF", "#7C6CFF", "#5ED3B3", "#F5FAFF"],
       zIndex: 1200,
     } as const;
 

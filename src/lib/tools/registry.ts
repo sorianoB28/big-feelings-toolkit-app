@@ -20,12 +20,15 @@ export type ToolRuntimeStatus = {
 
 export type ToolComponent = ComponentType<ToolRuntimeProps>;
 
+export type ToolExperience = "toolkit" | "demo";
+
 export type ToolDefinition = {
   toolKey: string;
   title: string;
   category: ToolCategory;
   description: string;
   durationSeconds: number;
+  experiences?: ToolExperience[];
   loadComponent: () => Promise<{ default: ToolComponent }>;
 };
 
@@ -37,6 +40,8 @@ export const TOOL_CATEGORY_LABELS: Record<ToolCategory, string> = {
   reset_mind: "Reset Mind",
   get_support: "Get Support",
 };
+
+const DEFAULT_TOOL_EXPERIENCES: readonly ToolExperience[] = ["toolkit", "demo"];
 
 export const TOOL_REGISTRY: ToolDefinition[] = [
   {
@@ -54,6 +59,15 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     description: "Breathe in as the circle grows, hold, then breathe out as it shrinks.",
     durationSeconds: 120,
     loadComponent: () => import("@/components/tools/circle-breathing"),
+  },
+  {
+    toolKey: "infinity_breathing",
+    title: "Infinity Breathing",
+    category: "calm_body",
+    description: "Follow a smooth infinity loop to pace slow, steady inhales and exhales.",
+    durationSeconds: 120,
+    experiences: ["toolkit"],
+    loadComponent: () => import("@/components/breathing/infinity-breathing"),
   },
   {
     toolKey: "star_breathing",
@@ -88,12 +102,48 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     loadComponent: () => import("@/components/tools/shake-out"),
   },
   {
+    toolKey: "stretch-flow",
+    title: "Stretch Flow",
+    category: "release_energy",
+    description: "Move through a short sequence of gentle stretches to loosen tension and restless energy.",
+    durationSeconds: 120,
+    experiences: ["toolkit"],
+    loadComponent: () => import("@/components/tools/stretch-flow"),
+  },
+  {
     toolKey: "54321-grounding",
     title: "5-4-3-2-1 Grounding",
     category: "reset_mind",
     description: "Name what you sense to bring attention back to the present moment.",
     durationSeconds: 180,
     loadComponent: () => import("@/components/tools/exercises/grounding-54321-tool"),
+  },
+  {
+    toolKey: "color-calm",
+    title: "Color Calm",
+    category: "reset_mind",
+    description: "Tap soft shapes to build a calm color canvas and refocus one choice at a time.",
+    durationSeconds: 150,
+    experiences: ["toolkit"],
+    loadComponent: () => import("@/components/tools/color-calm"),
+  },
+  {
+    toolKey: "ground-and-notice",
+    title: "Ground & Notice",
+    category: "reset_mind",
+    description: "Tap quick sensory prompts to reconnect with what is around you right now.",
+    durationSeconds: 120,
+    experiences: ["toolkit"],
+    loadComponent: () => import("@/components/tools/ground-and-notice"),
+  },
+  {
+    toolKey: "positive-phrase-builder",
+    title: "Positive Phrase Builder",
+    category: "reset_mind",
+    description: "Build one short supportive phrase you can use when things feel hard or shaky.",
+    durationSeconds: 90,
+    experiences: ["toolkit"],
+    loadComponent: () => import("@/components/tools/positive-phrase-builder"),
   },
   {
     toolKey: "body_map",
@@ -125,23 +175,49 @@ const TOOLS_BY_KEY = new Map<string, ToolDefinition>(
   TOOL_REGISTRY.map((tool) => [tool.toolKey, tool])
 );
 
-export function getToolByKey(toolKey: string): ToolDefinition | null {
-  return TOOLS_BY_KEY.get(toolKey) ?? null;
+export function isToolAvailableInExperience(
+  tool: ToolDefinition,
+  experience: ToolExperience
+): boolean {
+  return (tool.experiences ?? DEFAULT_TOOL_EXPERIENCES).includes(experience);
 }
 
-export function hasToolKey(toolKey: string): boolean {
-  return TOOLS_BY_KEY.has(toolKey);
+export function getTools(experience?: ToolExperience): ToolDefinition[] {
+  if (!experience) {
+    return TOOL_REGISTRY;
+  }
+
+  return TOOL_REGISTRY.filter((tool) => isToolAvailableInExperience(tool, experience));
 }
 
-export function getToolsGroupedByCategory(): Array<{
+export function getToolByKey(toolKey: string, experience?: ToolExperience): ToolDefinition | null {
+  const tool = TOOLS_BY_KEY.get(toolKey) ?? null;
+  if (!tool) {
+    return null;
+  }
+
+  if (experience && !isToolAvailableInExperience(tool, experience)) {
+    return null;
+  }
+
+  return tool;
+}
+
+export function hasToolKey(toolKey: string, experience?: ToolExperience): boolean {
+  return getToolByKey(toolKey, experience) !== null;
+}
+
+export function getToolsGroupedByCategory(experience?: ToolExperience): Array<{
   category: ToolCategory;
   label: string;
   tools: ToolDefinition[];
 }> {
+  const availableTools = getTools(experience);
+
   return (Object.keys(TOOL_CATEGORY_LABELS) as ToolCategory[]).map((category) => ({
     category,
     label: TOOL_CATEGORY_LABELS[category],
-    tools: TOOL_REGISTRY.filter((tool) => tool.category === category),
+    tools: availableTools.filter((tool) => tool.category === category),
   }));
 }
 

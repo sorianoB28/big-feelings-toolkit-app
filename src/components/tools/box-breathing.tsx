@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BREATHING_ACTIVE_STROKE,
+  BREATHING_ACTIVE_GLOW,
   BREATHING_BASE_STROKE,
   BREATHING_STROKE_WIDTH,
   BreathingVisualFrame,
@@ -184,7 +185,7 @@ export default function BoxBreathing({
               stroke={BREATHING_ACTIVE_STROKE}
               strokeWidth={BREATHING_STROKE_WIDTH + 0.5}
               strokeLinecap="round"
-              style={{ filter: "drop-shadow(0 0 4px rgba(134, 38, 51, 0.35))" }}
+              style={{ filter: `drop-shadow(0 0 4px ${BREATHING_ACTIVE_GLOW})` }}
             />
           </svg>
         </div>

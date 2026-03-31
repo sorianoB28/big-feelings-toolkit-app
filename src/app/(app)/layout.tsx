@@ -1,4 +1,5 @@
 import { AuthenticatedShell } from "@/components/layout/authenticated-shell";
+import { PageTransition } from "@/components/ui/page-transition";
 import { requireUser } from "@/lib/auth/require-user";
 
 const sidebarLinks = [
@@ -18,5 +19,9 @@ export default async function AuthenticatedLayout({
       ? [...sidebarLinks, { href: "/admin/staff", label: "Staff" }]
       : sidebarLinks;
 
-  return <AuthenticatedShell user={user} links={links}>{children}</AuthenticatedShell>;
+  return (
+    <AuthenticatedShell user={user} links={links}>
+      <PageTransition>{children}</PageTransition>
+    </AuthenticatedShell>
+  );
 }

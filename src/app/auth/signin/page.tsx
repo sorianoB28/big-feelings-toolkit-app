@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 import Image from "next/image";
+import { cookies } from "next/headers";
 import { SignInForm } from "@/components/auth/sign-in-form";
 import { BrandHeader } from "@/components/brand/brand-header";
 import { GlassCard } from "@/components/ui/glass-card";
 import { getSignInErrorMessage } from "@/lib/auth/sign-in-errors";
+import { APP_MODE_COOKIE_KEY, DEFAULT_APP_MODE, isAppMode } from "@/lib/app-mode-config";
 
 type SignInPageProps = {
   searchParams?: {
@@ -13,6 +15,11 @@ type SignInPageProps = {
 };
 
 export const dynamic = "force-dynamic";
+
+function getRequestMode() {
+  const cookieMode = cookies().get(APP_MODE_COOKIE_KEY)?.value;
+  return isAppMode(cookieMode) ? cookieMode : DEFAULT_APP_MODE;
+}
 
 function getAuthPageConfigError(): string | null {
   const nextAuthSecret = process.env.NEXTAUTH_SECRET?.trim();
@@ -64,6 +71,10 @@ async function getExistingSessionSafely() {
 }
 
 export default async function SignInPage({ searchParams }: SignInPageProps) {
+  if (getRequestMode() === "toolkit") {
+    redirect("/toolkit");
+  }
+
   const { sessionUser, authError } = await getExistingSessionSafely();
 
   if (sessionUser) {

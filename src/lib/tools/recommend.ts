@@ -1,4 +1,4 @@
-import { TOOL_REGISTRY, type ToolRegistryItem } from "@/lib/tools/registry";
+import { getTools, type ToolExperience, type ToolRegistryItem } from "@/lib/tools/registry";
 
 export type RecommendationZone = "green" | "yellow" | "blue" | "red";
 export type RecommendationIntent = "breathe" | "move" | "ground" | "support";
@@ -17,6 +17,7 @@ type RecommendToolsArgs = {
   intent: RecommendationIntent;
   mode?: RecommendationMode | null;
   bodyClues?: readonly string[] | null;
+  experience?: ToolExperience;
 };
 
 type ScoredTool = {
@@ -29,16 +30,17 @@ type ScoredTool = {
   }>;
 };
 
-const ALL_TOOL_KEYS = TOOL_REGISTRY.map((tool) => tool.toolKey);
-
 const INTENT_PRIORITY_KEYS: Record<RecommendationIntent, string[]> = {
   breathe: [
     "box_breathing",
     "circle_breathing",
+    "infinity_breathing",
     "star_breathing",
     "bubble-breathing",
     "54321-grounding",
+    "ground-and-notice",
     "body_map",
+    "color-calm",
     "wall-push",
     "shake_out",
     "ask_for_help",
@@ -47,19 +49,27 @@ const INTENT_PRIORITY_KEYS: Record<RecommendationIntent, string[]> = {
   move: [
     "wall-push",
     "shake_out",
+    "stretch-flow",
     "bubble-breathing",
     "54321-grounding",
+    "ground-and-notice",
     "body_map",
+    "color-calm",
     "star_breathing",
     "circle_breathing",
+    "infinity_breathing",
     "box_breathing",
     "ask_for_help",
     "talk-to-teacher",
   ],
   ground: [
+    "ground-and-notice",
     "54321-grounding",
+    "color-calm",
+    "positive-phrase-builder",
     "body_map",
     "circle_breathing",
+    "infinity_breathing",
     "ask_for_help",
     "box_breathing",
     "star_breathing",
@@ -71,9 +81,13 @@ const INTENT_PRIORITY_KEYS: Record<RecommendationIntent, string[]> = {
   support: [
     "talk-to-teacher",
     "ask_for_help",
+    "positive-phrase-builder",
+    "ground-and-notice",
     "54321-grounding",
     "body_map",
+    "color-calm",
     "circle_breathing",
+    "infinity_breathing",
     "box_breathing",
     "star_breathing",
     "bubble-breathing",
@@ -85,7 +99,10 @@ const INTENT_PRIORITY_KEYS: Record<RecommendationIntent, string[]> = {
 const ZONE_PRIORITY_KEYS: Record<RecommendationZone, string[]> = {
   green: [
     "circle_breathing",
+    "infinity_breathing",
     "star_breathing",
+    "ground-and-notice",
+    "color-calm",
     "body_map",
     "bubble-breathing",
     "54321-grounding",
@@ -98,8 +115,11 @@ const ZONE_PRIORITY_KEYS: Record<RecommendationZone, string[]> = {
   yellow: [
     "wall-push",
     "shake_out",
+    "stretch-flow",
     "circle_breathing",
+    "ground-and-notice",
     "star_breathing",
+    "color-calm",
     "bubble-breathing",
     "54321-grounding",
     "body_map",
@@ -108,7 +128,10 @@ const ZONE_PRIORITY_KEYS: Record<RecommendationZone, string[]> = {
     "box_breathing",
   ],
   blue: [
+    "ground-and-notice",
     "54321-grounding",
+    "color-calm",
+    "positive-phrase-builder",
     "ask_for_help",
     "body_map",
     "shake_out",
@@ -123,8 +146,11 @@ const ZONE_PRIORITY_KEYS: Record<RecommendationZone, string[]> = {
     "box_breathing",
     "54321-grounding",
     "circle_breathing",
+    "stretch-flow",
+    "ground-and-notice",
     "ask_for_help",
     "talk-to-teacher",
+    "infinity_breathing",
     "wall-push",
     "star_breathing",
     "bubble-breathing",
@@ -188,9 +214,13 @@ function addScore(
   }
 }
 
-function createScoreMap(): Map<string, ScoredTool> {
+function getAllToolKeys(experience: ToolExperience): string[] {
+  return getTools(experience).map((tool) => tool.toolKey);
+}
+
+function createScoreMap(experience: ToolExperience): Map<string, ScoredTool> {
   return new Map(
-    TOOL_REGISTRY.map((tool) => [
+    getTools(experience).map((tool) => [
       tool.toolKey,
       {
         tool,
@@ -201,12 +231,16 @@ function createScoreMap(): Map<string, ScoredTool> {
   );
 }
 
-function buildTieBreakOrder(zone: RecommendationZone, intent: RecommendationIntent): Map<string, number> {
+function buildTieBreakOrder(
+  zone: RecommendationZone,
+  intent: RecommendationIntent,
+  experience: ToolExperience
+): Map<string, number> {
   const seen = new Set<string>();
   const ordered = [
     ...INTENT_PRIORITY_KEYS[intent],
     ...ZONE_PRIORITY_KEYS[zone],
-    ...ALL_TOOL_KEYS,
+    ...getAllToolKeys(experience),
   ];
 
   return new Map(
@@ -253,8 +287,9 @@ export function recommendTools({
   intent,
   mode = null,
   bodyClues = [],
+  experience = "demo",
 }: RecommendToolsArgs): RecommendedTool[] {
-  const scores = createScoreMap();
+  const scores = createScoreMap(experience);
   const reasonOrder = { current: 0 };
   const selectedBodyClues = bodyClues ?? [];
   const hasBreathTension = hasMatchingClue(selectedBodyClues, BREATH_TENSION_CLUES);
@@ -266,6 +301,7 @@ export function recommendTools({
   if (intent === "breathe") {
     addScore(scores, "box_breathing", 7, "breathing reset", reasonOrder);
     addScore(scores, "circle_breathing", 6, "breathing reset", reasonOrder);
+    addScore(scores, "infinity_breathing", 6, "breathing reset", reasonOrder);
     addScore(scores, "star_breathing", 5, "breathing reset", reasonOrder);
     addScore(scores, "bubble-breathing", 5, "breathing reset", reasonOrder);
     addScore(scores, "body_map", 1, "slowing down", reasonOrder);
@@ -274,11 +310,15 @@ export function recommendTools({
   if (intent === "move") {
     addScore(scores, "wall-push", 7, "movement reset", reasonOrder);
     addScore(scores, "shake_out", 6, "movement reset", reasonOrder);
+    addScore(scores, "stretch-flow", 6, "movement reset", reasonOrder);
     addScore(scores, "bubble-breathing", 1, "resetting after movement", reasonOrder);
   }
 
   if (intent === "ground") {
+    addScore(scores, "ground-and-notice", 8, "grounding", reasonOrder);
     addScore(scores, "54321-grounding", 7, "grounding", reasonOrder);
+    addScore(scores, "color-calm", 5, "grounding", reasonOrder);
+    addScore(scores, "positive-phrase-builder", 3, "steady focus", reasonOrder);
     addScore(scores, "body_map", 6, "grounding", reasonOrder);
     addScore(scores, "circle_breathing", 2, "steady focus", reasonOrder);
     addScore(scores, "ask_for_help", 1, "extra support", reasonOrder);
@@ -287,25 +327,35 @@ export function recommendTools({
   if (intent === "support") {
     addScore(scores, "talk-to-teacher", 7, "getting support", reasonOrder);
     addScore(scores, "ask_for_help", 6, "getting support", reasonOrder);
+    addScore(scores, "positive-phrase-builder", 5, "supportive self-talk", reasonOrder);
     addScore(scores, "54321-grounding", 2, "steadying first", reasonOrder);
   }
 
   if (zone === "green") {
     addScore(scores, "circle_breathing", 2, "green zone", reasonOrder);
+    addScore(scores, "infinity_breathing", 2, "green zone", reasonOrder);
     addScore(scores, "star_breathing", 2, "green zone", reasonOrder);
+    addScore(scores, "ground-and-notice", 2, "green zone", reasonOrder);
+    addScore(scores, "color-calm", 2, "green zone", reasonOrder);
     addScore(scores, "body_map", 2, "green zone", reasonOrder);
   }
 
   if (zone === "yellow") {
     addScore(scores, "wall-push", 3, "yellow zone", reasonOrder);
     addScore(scores, "shake_out", 3, "yellow zone", reasonOrder);
+    addScore(scores, "stretch-flow", 3, "yellow zone", reasonOrder);
     addScore(scores, "circle_breathing", 2, "yellow zone", reasonOrder);
+    addScore(scores, "ground-and-notice", 2, "yellow zone", reasonOrder);
     addScore(scores, "star_breathing", 2, "yellow zone", reasonOrder);
+    addScore(scores, "color-calm", 1, "yellow zone", reasonOrder);
     addScore(scores, "bubble-breathing", 1, "yellow zone", reasonOrder);
   }
 
   if (zone === "blue") {
+    addScore(scores, "ground-and-notice", 4, "blue zone", reasonOrder);
     addScore(scores, "54321-grounding", 4, "blue zone", reasonOrder);
+    addScore(scores, "color-calm", 3, "blue zone", reasonOrder);
+    addScore(scores, "positive-phrase-builder", 3, "blue zone", reasonOrder);
     addScore(scores, "ask_for_help", 3, "blue zone", reasonOrder);
     addScore(scores, "shake_out", 2, "blue zone", reasonOrder);
     addScore(scores, "body_map", 2, "blue zone", reasonOrder);
@@ -315,15 +365,22 @@ export function recommendTools({
   if (zone === "red") {
     addScore(scores, "box_breathing", 3, "red zone", reasonOrder);
     addScore(scores, "54321-grounding", 3, "red zone", reasonOrder);
+    addScore(scores, "stretch-flow", 2, "red zone", reasonOrder);
+    addScore(scores, "ground-and-notice", 3, "red zone", reasonOrder);
     addScore(scores, "circle_breathing", 2, "red zone", reasonOrder);
+    addScore(scores, "infinity_breathing", 2, "red zone", reasonOrder);
     addScore(scores, "ask_for_help", 2, "red zone", reasonOrder);
     addScore(scores, "talk-to-teacher", 1, "red zone", reasonOrder);
   }
 
   if (mode === "quick") {
+    addScore(scores, "ground-and-notice", 3, "quick classroom reset", reasonOrder);
+    addScore(scores, "color-calm", 2, "quick classroom reset", reasonOrder);
+    addScore(scores, "positive-phrase-builder", 2, "quick classroom reset", reasonOrder);
     addScore(scores, "star_breathing", 2, "quick classroom reset", reasonOrder);
     addScore(scores, "bubble-breathing", 2, "quick classroom reset", reasonOrder);
     addScore(scores, "shake_out", 2, "quick classroom reset", reasonOrder);
+    addScore(scores, "stretch-flow", 2, "quick classroom reset", reasonOrder);
     addScore(scores, "wall-push", 1, "quick classroom reset", reasonOrder);
     addScore(scores, "ask_for_help", 1, "quick classroom reset", reasonOrder);
   }
@@ -331,6 +388,7 @@ export function recommendTools({
   if (mode === "full") {
     addScore(scores, "54321-grounding", 2, "full check-in", reasonOrder);
     addScore(scores, "body_map", 2, "full check-in", reasonOrder);
+    addScore(scores, "ground-and-notice", 1, "full check-in", reasonOrder);
     addScore(scores, "box_breathing", 1, "full check-in", reasonOrder);
     addScore(scores, "circle_breathing", 1, "full check-in", reasonOrder);
     addScore(scores, "talk-to-teacher", 1, "full check-in", reasonOrder);
@@ -346,6 +404,7 @@ export function recommendTools({
   if (hasBodyTension) {
     addScore(scores, "wall-push", 4, "body tension", reasonOrder);
     addScore(scores, "shake_out", 3, "body tension", reasonOrder);
+    addScore(scores, "stretch-flow", 3, "body tension", reasonOrder);
   }
 
   if (hasLowEnergy) {
@@ -357,6 +416,7 @@ export function recommendTools({
 
   if (hasStomachClues) {
     addScore(scores, "54321-grounding", 3, "stomach knots", reasonOrder);
+    addScore(scores, "ground-and-notice", 2, "stomach knots", reasonOrder);
     addScore(scores, "body_map", 3, "stomach knots", reasonOrder);
     addScore(scores, "circle_breathing", 1, "stomach knots", reasonOrder);
   }
@@ -369,6 +429,7 @@ export function recommendTools({
   if (zone === "red" && intent === "breathe" && (hasBreathTension || hasStomachClues)) {
     addScore(scores, "box_breathing", 3, "big feelings", reasonOrder);
     addScore(scores, "circle_breathing", 2, "big feelings", reasonOrder);
+    addScore(scores, "infinity_breathing", 2, "big feelings", reasonOrder);
     addScore(scores, "star_breathing", 1, "big feelings", reasonOrder);
   }
 
@@ -395,7 +456,7 @@ export function recommendTools({
     addScore(scores, "ask_for_help", 2, "trusted adult support", reasonOrder);
   }
 
-  const tieBreakOrder = buildTieBreakOrder(zone, intent);
+  const tieBreakOrder = buildTieBreakOrder(zone, intent, experience);
   const ranked = Array.from(scores.values()).sort((left, right) => {
     if (right.score !== left.score) {
       return right.score - left.score;

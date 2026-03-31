@@ -1,0 +1,47 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1200" fill="url(#bg)"/>
+  <circle cx="1310" cy="248" r="238" fill="url(#glowTeal)" opacity="0.7"/>
+  <circle cx="328" cy="920" r="260" fill="url(#glowPurple)" opacity="0.66"/>
+  <rect x="110" y="118" width="1380" height="964" rx="90" fill="url(#panel)"/>
+  <rect x="196" y="184" width="520" height="832" rx="56" fill="url(#leftPane)"/>
+  <circle cx="456" cy="392" r="132" fill="#FFFFFF" opacity="0.84"/>
+  <path d="M342 564C362 466 438 396 530 396C622 396 698 466 718 564H342Z" fill="#5ED3B3" opacity="0.84"/>
+  <rect x="812" y="250" width="514" height="102" rx="40" fill="#F8FBFF" opacity="0.84"/>
+  <circle cx="902" cy="302" r="26" fill="#FFB7B7"/>
+  <circle cx="998" cy="302" r="26" fill="#FFD59A"/>
+  <circle cx="1094" cy="302" r="26" fill="#D8DCE8"/>
+  <circle cx="1190" cy="302" r="26" fill="#AEE8B7"/>
+  <circle cx="1286" cy="302" r="26" fill="#8ED7FF"/>
+  <rect x="812" y="432" width="514" height="492" rx="52" fill="url(#card)"/>
+  <rect x="872" y="510" width="250" height="24" rx="12" fill="#7F9FFF" opacity="0.8"/>
+  <rect x="872" y="560" width="360" height="18" rx="9" fill="#C9D7FF" opacity="0.8"/>
+  <rect x="872" y="606" width="314" height="18" rx="9" fill="#CDEFE5" opacity="0.86"/>
+  <rect x="872" y="700" width="392" height="140" rx="34" fill="#FFFFFF" opacity="0.6"/>
+  <defs>
+    <linearGradient id="bg" x1="92" y1="64" x2="1478" y2="1124" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7FBFD"/>
+      <stop offset="0.48" stop-color="#EAF2FF"/>
+      <stop offset="1" stop-color="#ECFBF5"/>
+    </linearGradient>
+    <radialGradient id="glowTeal" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1310 248) rotate(90) scale(238)">
+      <stop stop-color="#8AE3CD"/>
+      <stop offset="1" stop-color="#8AE3CD" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowPurple" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(328 920) rotate(90) scale(260)">
+      <stop stop-color="#BCAEFF"/>
+      <stop offset="1" stop-color="#BCAEFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="panel" x1="110" y1="118" x2="1490" y2="1082" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.88"/>
+      <stop offset="1" stop-color="#F8FBFF" stop-opacity="0.66"/>
+    </linearGradient>
+    <linearGradient id="leftPane" x1="196" y1="184" x2="716" y2="1016" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FBFF"/>
+      <stop offset="1" stop-color="#E8F8F2"/>
+    </linearGradient>
+    <linearGradient id="card" x1="812" y1="432" x2="1326" y2="924" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F5F9FF"/>
+      <stop offset="1" stop-color="#FAFDFF"/>
+    </linearGradient>
+  </defs>
+</svg>

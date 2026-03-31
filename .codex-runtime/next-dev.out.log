@@ -1,0 +1,103 @@
+
+> big-feelings-toolkit-app@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.9s
+ ○ Compiling / ...
+ ✓ Compiled / in 17.2s (1383 modules)
+ GET / 200 in 17255ms
+ GET /_next/static/webpack/2070a63a0dd1b75a.webpack.hot-update.json 404 in 18136ms
+ GET / 307 in 199ms
+ ○ Compiling /toolkit ...
+ ✓ Compiled /toolkit in 5.2s (1829 modules)
+ GET /_next/static/webpack/2070a63a0dd1b75a.webpack.hot-update.json 404 in 729ms
+ GET /toolkit 200 in 6052ms
+ GET /toolkit 200 in 644ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 1300ms (1117 modules)
+ GET /favicon.ico 200 in 1950ms
+ ○ Compiling /tools/[toolKey] ...
+ ✓ Compiled /tools/[toolKey] in 5.4s (1916 modules)
+ GET /tools 200 in 6673ms
+ GET /toolkit 200 in 6807ms
+ GET /tools/circle-breathing?from=toolkit 404 in 11320ms
+ ✓ Compiled in 4.5s (1894 modules)
+ ✓ Compiled in 2.2s (1894 modules)
+ ✓ Compiled in 2.4s (1894 modules)
+ ✓ Compiled in 1937ms (1894 modules)
+ ✓ Compiled in 1992ms (1894 modules)
+ ✓ Compiled in 1373ms (1894 modules)
+ ✓ Compiled in 2.7s (1894 modules)
+ ✓ Compiled in 1034ms (1894 modules)
+ ✓ Compiled in 1021ms (1894 modules)
+ GET /tools 200 in 503ms
+ ✓ Compiled in 1824ms (1894 modules)
+ ✓ Compiled in 1967ms (1894 modules)
+ ✓ Compiled in 1100ms (1894 modules)
+ ✓ Compiled in 804ms (1894 modules)
+ ✓ Compiled in 818ms (1894 modules)
+ ✓ Compiled in 846ms (1894 modules)
+ ✓ Compiled in 737ms (1894 modules)
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 2.9s (1880 modules)
+ GET /tools 404 in 248ms
+ ○ Compiling /tools ...
+ ✓ Compiled /tools in 4s (1880 modules)
+ ✓ Compiled in 1155ms (1894 modules)
+ ✓ Compiled in 2.6s (1897 modules)
+ ✓ Compiled in 2.6s (1906 modules)
+ ✓ Compiled in 1131ms (1906 modules)
+ GET /tools 200 in 356ms
+ ✓ Compiled in 6.6s (1913 modules)
+ ✓ Compiled in 689ms (791 modules)
+ ✓ Compiled in 1054ms (1913 modules)
+ ✓ Compiled in 1314ms (1913 modules)
+ ✓ Compiled in 4s (1924 modules)
+ ✓ Compiled in 3.5s (1929 modules)
+ ✓ Compiled in 2.6s (1927 modules)
+ GET /tools 500 in 1799ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 1315ms (1162 modules)
+ GET /favicon.ico 200 in 1515ms
+ ✓ Compiled in 938ms (1959 modules)
+ GET /tools 200 in 112ms
+ GET /tools 500 in 125ms
+ GET /favicon.ico 200 in 46ms
+ GET /favicon.ico 200 in 18ms
+ ✓ Compiled in 878ms (1959 modules)
+ GET /tools 500 in 422ms
+ GET /favicon.ico 200 in 35ms
+ ✓ Compiled in 927ms (1959 modules)
+ GET /tools 200 in 770ms
+ GET /favicon.ico 200 in 25ms
+ ✓ Compiled in 1585ms (1959 modules)
+ ✓ Compiled in 1643ms (1959 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 3.1s (1133 modules)
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1064ms (1134 modules)
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 6.1s (2157 modules)
+ GET / 404 in 11387ms
+ GET / 307 in 837ms
+ GET /toolkit 200 in 398ms
+ GET /_next/static/css/app/layout.css?v=1774890714907 404 in 163ms
+ GET /_next/static/chunks/main-app.js?v=1774890714907 404 in 221ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 222ms
+ GET /_next/static/chunks/app/(public)/toolkit/page.js 404 in 262ms
+ GET /_next/static/chunks/app/(public)/toolkit/layout.js 404 in 203ms
+ GET /_next/static/chunks/app/(public)/layout.js 404 in 61ms
+ GET /_next/static/chunks/app/not-found.js 404 in 42ms
+ GET /toolkit 200 in 195ms
+ GET /_next/static/css/app/layout.css?v=1774891485353 404 in 157ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 227ms
+ GET /_next/static/chunks/main-app.js?v=1774891485353 404 in 231ms
+ GET /_next/static/chunks/app/(public)/toolkit/layout.js 404 in 217ms
+ GET /_next/static/chunks/app/(public)/toolkit/page.js 404 in 227ms
+ GET /_next/static/chunks/app/(public)/layout.js 404 in 231ms
+ GET /_next/static/chunks/app/not-found.js 404 in 66ms

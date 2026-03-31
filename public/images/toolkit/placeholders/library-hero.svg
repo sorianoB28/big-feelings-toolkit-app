@@ -1,0 +1,54 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1200" fill="url(#bg)"/>
+  <circle cx="1240" cy="220" r="220" fill="url(#glowBlue)" opacity="0.74"/>
+  <circle cx="320" cy="980" r="264" fill="url(#glowMint)" opacity="0.62"/>
+  <rect x="118" y="118" width="1364" height="964" rx="90" fill="url(#panel)"/>
+  <rect x="204" y="192" width="1192" height="816" rx="58" fill="#F9FCFF" opacity="0.92"/>
+  <rect x="272" y="280" width="288" height="198" rx="42" fill="url(#tileBlue)"/>
+  <rect x="604" y="280" width="520" height="198" rx="42" fill="url(#tilePurple)"/>
+  <rect x="1168" y="280" width="160" height="198" rx="42" fill="url(#tileTeal)"/>
+  <rect x="272" y="528" width="418" height="354" rx="48" fill="#FFFFFF" opacity="0.66"/>
+  <rect x="744" y="528" width="584" height="354" rx="48" fill="url(#wideCard)"/>
+  <circle cx="440" cy="630" r="68" fill="#8AB2FF" opacity="0.82"/>
+  <circle cx="440" cy="630" r="34" fill="#FFFFFF" opacity="0.86"/>
+  <rect x="354" y="762" width="258" height="18" rx="9" fill="#B6C8FF" opacity="0.78"/>
+  <rect x="354" y="806" width="194" height="14" rx="7" fill="#DDE5FF" opacity="0.82"/>
+  <rect x="810" y="612" width="234" height="20" rx="10" fill="#83A6FF" opacity="0.82"/>
+  <rect x="810" y="656" width="368" height="16" rx="8" fill="#CBD7FF" opacity="0.84"/>
+  <rect x="810" y="698" width="314" height="16" rx="8" fill="#C9EEE3" opacity="0.88"/>
+  <defs>
+    <linearGradient id="bg" x1="86" y1="74" x2="1490" y2="1132" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F6FAFF"/>
+      <stop offset="0.48" stop-color="#EAF2FF"/>
+      <stop offset="1" stop-color="#F0FBF7"/>
+    </linearGradient>
+    <radialGradient id="glowBlue" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1240 220) rotate(90) scale(220)">
+      <stop stop-color="#9AB9FF"/>
+      <stop offset="1" stop-color="#9AB9FF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowMint" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(320 980) rotate(90) scale(264)">
+      <stop stop-color="#9DE4CF"/>
+      <stop offset="1" stop-color="#9DE4CF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="panel" x1="118" y1="118" x2="1482" y2="1082" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.86"/>
+      <stop offset="1" stop-color="#F8FBFF" stop-opacity="0.66"/>
+    </linearGradient>
+    <linearGradient id="tileBlue" x1="272" y1="280" x2="560" y2="478" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EEF5FF"/>
+      <stop offset="1" stop-color="#DCEAFF"/>
+    </linearGradient>
+    <linearGradient id="tilePurple" x1="604" y1="280" x2="1124" y2="478" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EEF0FF"/>
+      <stop offset="1" stop-color="#E3F6F0"/>
+    </linearGradient>
+    <linearGradient id="tileTeal" x1="1168" y1="280" x2="1328" y2="478" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E7FAF3"/>
+      <stop offset="1" stop-color="#D7F2EA"/>
+    </linearGradient>
+    <linearGradient id="wideCard" x1="744" y1="528" x2="1328" y2="882" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F4F8FF"/>
+      <stop offset="1" stop-color="#FAFDFF"/>
+    </linearGradient>
+  </defs>
+</svg>

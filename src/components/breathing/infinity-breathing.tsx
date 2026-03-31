@@ -2,84 +2,118 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import {
+  BREATHING_ACTIVE_GLOW,
+  BREATHING_ACTIVE_STROKE,
+  BREATHING_BASE_STROKE,
+  BREATHING_FILL_END,
+  BREATHING_FILL_START,
+  BREATHING_STROKE_WIDTH,
+  BreathingVisualFrame,
+} from "@/components/tools/breathing-visual-frame";
+import type { ToolRuntimeProps } from "@/lib/tools/registry";
 
-const DEFAULT_TOTAL_CYCLES = 6;
-const DEFAULT_DURATION_SECONDS = 120;
-const MIN_DURATION_SECONDS = 30;
-const MAX_DURATION_SECONDS = 300;
+const TOTAL_CYCLES = 10;
+const MAX_SECONDS = 120;
+const CYCLE_MS = 12_000;
 const PATH_D = [
-  "M 200 140",
-  "C 160 80 100 80 100 140",
-  "C 100 200 160 200 200 140",
-  "C 240 80 300 80 300 140",
-  "C 300 200 240 200 200 140",
+  "M 220 160",
+  "C 182 98 114 98 114 160",
+  "C 114 222 182 222 220 160",
+  "C 258 98 326 98 326 160",
+  "C 326 222 258 222 220 160",
 ].join(" ");
 
-type InfinityBreathingProps = {
-  totalCycles?: number;
-  durationSeconds?: number;
-  className?: string;
-  onFinish?: () => void;
-};
+type BreathPhase = "Breathe in" | "Breathe out";
 
 type Point = {
   x: number;
   y: number;
 };
 
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
-}
-
-function getCyclePhase(cycleProgress: number): "Breathe in" | "Breathe out" {
+function getBreathPhase(cycleProgress: number): BreathPhase {
   return cycleProgress < 0.5 ? "Breathe in" : "Breathe out";
 }
 
 export default function InfinityBreathing({
-  totalCycles = DEFAULT_TOTAL_CYCLES,
-  durationSeconds = DEFAULT_DURATION_SECONDS,
-  className,
+  isRunning,
+  isFinished,
+  elapsedSeconds,
+  durationSeconds,
   onFinish,
-}: InfinityBreathingProps) {
+  onStatusChange,
+}: ToolRuntimeProps) {
   const prefersReducedMotion = useReducedMotion();
-  const safeTotalCycles = Math.max(1, Math.floor(totalCycles));
-  const safeDurationSeconds = clamp(
-    Math.round(durationSeconds),
-    MIN_DURATION_SECONDS,
-    MAX_DURATION_SECONDS
-  );
-  const totalDurationMs = safeDurationSeconds * 1000;
-  const cycleDurationMs = totalDurationMs / safeTotalCycles;
-
-  const [elapsedMs, setElapsedMs] = useState(0);
-  const [isRunning, setIsRunning] = useState(false);
-  const [isFinished, setIsFinished] = useState(false);
+  const [visualElapsedMs, setVisualElapsedMs] = useState(elapsedSeconds * 1000);
   const [pathLength, setPathLength] = useState(0);
-  const [dotPoint, setDotPoint] = useState<Point>({ x: 200, y: 140 });
-
-  const pathRef = useRef<SVGPathElement | null>(null);
+  const [dotPoint, setDotPoint] = useState<Point>({ x: 220, y: 160 });
+  const previousElapsedRef = useRef(elapsedSeconds);
+  const lastTickRef = useRef<number | null>(null);
   const frameRef = useRef<number | null>(null);
-  const lastFrameRef = useRef<number | null>(null);
-  const finishNotifiedRef = useRef(false);
+  const pathRef = useRef<SVGPathElement | null>(null);
 
-  const clampedElapsedMs = Math.min(elapsedMs, totalDurationMs);
-  const overallProgress = clampedElapsedMs / totalDurationMs;
-  const completedCycles = Math.floor(clampedElapsedMs / cycleDurationMs);
-  const currentCycleIndex = Math.min(safeTotalCycles - 1, completedCycles);
-  const rawCycleElapsedMs = clampedElapsedMs % cycleDurationMs;
-  const cycleElapsedMs = isFinished ? cycleDurationMs : rawCycleElapsedMs;
-  const cycleProgress = cycleElapsedMs / cycleDurationMs;
-  const phaseLabel = isFinished ? "Complete" : getCyclePhase(cycleProgress);
+  const maxDurationMs = Math.min(durationSeconds, MAX_SECONDS) * 1000;
+  const targetDurationMs = Math.min(maxDurationMs, TOTAL_CYCLES * CYCLE_MS);
+
+  useEffect(() => {
+    const wasReset = elapsedSeconds === 0 && previousElapsedRef.current > 0;
+    previousElapsedRef.current = elapsedSeconds;
+
+    if (wasReset) {
+      setVisualElapsedMs(0);
+      lastTickRef.current = null;
+      return;
+    }
+
+    setVisualElapsedMs((current) => Math.max(current, Math.min(elapsedSeconds * 1000, targetDurationMs)));
+  }, [elapsedSeconds, targetDurationMs]);
+
+  useEffect(() => {
+    if (!isRunning || isFinished) {
+      if (frameRef.current !== null) {
+        window.cancelAnimationFrame(frameRef.current);
+      }
+      lastTickRef.current = null;
+      return;
+    }
+
+    const tick = (timestamp: number) => {
+      if (lastTickRef.current === null) {
+        lastTickRef.current = timestamp;
+      }
+
+      const deltaMs = timestamp - lastTickRef.current;
+      lastTickRef.current = timestamp;
+
+      setVisualElapsedMs((current) => Math.min(current + deltaMs, targetDurationMs));
+      frameRef.current = window.requestAnimationFrame(tick);
+    };
+
+    frameRef.current = window.requestAnimationFrame(tick);
+
+    return () => {
+      if (frameRef.current !== null) {
+        window.cancelAnimationFrame(frameRef.current);
+      }
+    };
+  }, [isFinished, isRunning, targetDurationMs]);
 
   useEffect(() => {
     if (!pathRef.current) {
       return;
     }
 
-    const measuredLength = pathRef.current.getTotalLength();
-    setPathLength(measuredLength);
+    setPathLength(pathRef.current.getTotalLength());
   }, []);
+
+  const cappedElapsedMs = Math.min(visualElapsedMs, targetDurationMs);
+  const completedCycles = Math.min(TOTAL_CYCLES, Math.floor(cappedElapsedMs / CYCLE_MS));
+  const currentCycleIndex = Math.min(TOTAL_CYCLES - 1, Math.floor(cappedElapsedMs / CYCLE_MS));
+  const cycleElapsedMs = isFinished ? CYCLE_MS : cappedElapsedMs % CYCLE_MS;
+  const cycleProgress = Math.min(1, cycleElapsedMs / CYCLE_MS);
+  const cycleProgressPercent = Math.min(100, Math.max(0, cycleProgress * 100));
+  const displayCycle = isFinished ? TOTAL_CYCLES : Math.min(TOTAL_CYCLES, currentCycleIndex + 1);
+  const phase = getBreathPhase(cycleProgress);
 
   useEffect(() => {
     if (!pathRef.current || pathLength === 0) {
@@ -91,224 +125,148 @@ export default function InfinityBreathing({
   }, [cycleProgress, pathLength]);
 
   useEffect(() => {
-    if (!isRunning || isFinished) {
-      if (frameRef.current !== null) {
-        window.cancelAnimationFrame(frameRef.current);
-      }
-      lastFrameRef.current = null;
+    if (isFinished) {
       return;
     }
 
-    const tick = (timestamp: number) => {
-      if (lastFrameRef.current === null) {
-        lastFrameRef.current = timestamp;
-      }
-
-      const deltaMs = timestamp - lastFrameRef.current;
-      lastFrameRef.current = timestamp;
-
-      setElapsedMs((current) => Math.min(current + deltaMs, totalDurationMs));
-      frameRef.current = window.requestAnimationFrame(tick);
-    };
-
-    frameRef.current = window.requestAnimationFrame(tick);
-
-    return () => {
-      if (frameRef.current !== null) {
-        window.cancelAnimationFrame(frameRef.current);
-      }
-    };
-  }, [isFinished, isRunning, totalDurationMs]);
+    if (completedCycles >= TOTAL_CYCLES || cappedElapsedMs >= targetDurationMs) {
+      onFinish();
+    }
+  }, [cappedElapsedMs, completedCycles, isFinished, onFinish, targetDurationMs]);
 
   useEffect(() => {
-    if (!isFinished && clampedElapsedMs >= totalDurationMs) {
-      setElapsedMs(totalDurationMs);
-      setIsRunning(false);
-      setIsFinished(true);
-      if (!finishNotifiedRef.current) {
-        finishNotifiedRef.current = true;
-        onFinish?.();
-      }
-    }
-  }, [clampedElapsedMs, isFinished, onFinish, totalDurationMs]);
+    onStatusChange?.({
+      phaseLabel: phase,
+      cycleLabel: `${displayCycle} of ${TOTAL_CYCLES}`,
+      cycleProgressPercent,
+    });
+  }, [cycleProgressPercent, displayCycle, onStatusChange, phase]);
 
   useEffect(() => {
     return () => {
-      if (frameRef.current !== null) {
-        window.cancelAnimationFrame(frameRef.current);
-      }
+      onStatusChange?.(null);
     };
-  }, []);
+  }, [onStatusChange]);
 
-  const actionLabel = useMemo(() => {
+  const instruction = useMemo(() => {
     if (isFinished) {
-      return "Start Again";
+      return "Complete";
     }
-    if (isRunning) {
-      return "Pause";
+    if (!isRunning && cappedElapsedMs === 0) {
+      return "Press Start";
     }
-    if (clampedElapsedMs > 0) {
-      return "Resume";
+    if (!isRunning) {
+      return "Paused";
     }
-    return "Start";
-  }, [clampedElapsedMs, isFinished, isRunning]);
+    return phase;
+  }, [cappedElapsedMs, isFinished, isRunning, phase]);
 
-  function handleStartPause() {
-    if (isFinished) {
-      finishNotifiedRef.current = false;
-      setElapsedMs(0);
-      setIsFinished(false);
-      setIsRunning(true);
-      return;
-    }
-    setIsRunning((current) => !current);
-  }
-
-  function handleReset() {
-    if (frameRef.current !== null) {
-      window.cancelAnimationFrame(frameRef.current);
-    }
-    lastFrameRef.current = null;
-    finishNotifiedRef.current = false;
-    setElapsedMs(0);
-    setIsRunning(false);
-    setIsFinished(false);
-  }
-
-  function handleFinish() {
-    setElapsedMs(totalDurationMs);
-    setIsRunning(false);
-    setIsFinished(true);
-    if (!finishNotifiedRef.current) {
-      finishNotifiedRef.current = true;
-      onFinish?.();
-    }
-  }
+  const trailProgress = Math.max(0.001, cycleProgress);
 
   return (
-    <section
-      className={cn(
-        "relative overflow-hidden rounded-2xl border border-white/30 bg-white/70 p-6 shadow-md supports-[backdrop-filter]:backdrop-blur-md sm:p-8",
-        className
-      )}
-    >
-      <div className="pointer-events-none absolute -left-20 -top-20 h-56 w-56 rounded-full bg-primary/8 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 -right-20 h-60 w-60 rounded-full bg-gray-500/7 blur-3xl" />
+    <div className="space-y-5">
+      <div className="text-center">
+        <p className="text-xs font-semibold uppercase tracking-wide text-primary">Infinity breathing</p>
+        <p className="mt-1 text-lg font-semibold text-dark">{instruction}</p>
+        <p className="mt-1 text-sm text-slate-600">
+          Follow the glowing loop. Inhale across one side, then exhale across the other.
+        </p>
+      </div>
 
-      <div className="relative z-10 space-y-6">
-        <header className="space-y-3">
-          <h2 className="text-xl font-semibold tracking-tight text-dark">Infinity Breathing</h2>
-          <p className="text-sm text-gray-700">Follow the path with your breathing.</p>
-          <div className="flex items-center justify-between text-sm font-medium text-gray-700">
-            <span>Cycle {Math.min(currentCycleIndex + 1, safeTotalCycles)} of {safeTotalCycles}</span>
-            <span>{phaseLabel}</span>
-          </div>
-          <div className="h-2 overflow-hidden rounded-full bg-gray-200">
-            <motion.div
-              className="h-full rounded-full bg-primary"
-              animate={{ width: `${Math.min(100, Math.max(0, overallProgress * 100))}%` }}
-              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.25, ease: "easeOut" }}
-            />
-          </div>
-        </header>
+      <BreathingVisualFrame showAmbientToggle={false} visualClassName="px-4 py-6 sm:px-6 sm:py-8">
+        <div className="relative flex min-h-[19rem] items-center justify-center overflow-hidden">
+          <div className="pointer-events-none absolute left-[12%] top-[10%] h-24 w-24 rounded-full bg-secondary/12 blur-3xl" />
+          <div className="pointer-events-none absolute bottom-[12%] right-[10%] h-28 w-28 rounded-full bg-accent/16 blur-3xl" />
 
-        <div className="rounded-2xl border border-white/35 bg-white/80 p-4 shadow-sm sm:p-6">
           <svg
-            viewBox="0 0 400 280"
-            className="mx-auto h-[260px] w-full max-w-3xl"
+            viewBox="0 0 440 320"
+            className="relative z-10 h-[18rem] w-full max-w-4xl sm:h-[20rem]"
             role="img"
-            aria-label="Infinity breathing path"
+            aria-label="Infinity loop breathing guide"
           >
             <defs>
-              <linearGradient id="infinityPathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="rgba(35,31,32,0.24)" />
-                <stop offset="50%" stopColor="rgba(134,38,51,0.24)" />
-                <stop offset="100%" stopColor="rgba(35,31,32,0.24)" />
+              <linearGradient id="infinityBaseGradient" x1="0%" y1="50%" x2="100%" y2="50%">
+                <stop offset="0%" stopColor={BREATHING_FILL_START} />
+                <stop offset="50%" stopColor="rgba(79, 140, 255, 0.18)" />
+                <stop offset="100%" stopColor={BREATHING_FILL_END} />
               </linearGradient>
-              <radialGradient id="dotGradient" cx="50%" cy="40%" r="65%">
+              <linearGradient id="infinityActiveGradient" x1="0%" y1="50%" x2="100%" y2="50%">
+                <stop offset="0%" stopColor="#7C6CFF" />
+                <stop offset="50%" stopColor={BREATHING_ACTIVE_STROKE} />
+                <stop offset="100%" stopColor="#5ED3B3" />
+              </linearGradient>
+              <radialGradient id="infinityDotGradient" cx="50%" cy="40%" r="65%">
                 <stop offset="0%" stopColor="rgba(255,255,255,0.98)" />
-                <stop offset="100%" stopColor="rgba(134,38,51,0.85)" />
+                <stop offset="100%" stopColor={BREATHING_ACTIVE_STROKE} />
               </radialGradient>
             </defs>
 
             <path
               d={PATH_D}
               fill="none"
-              stroke="url(#infinityPathGradient)"
-              strokeWidth="14"
+              stroke="url(#infinityBaseGradient)"
+              strokeWidth="18"
               strokeLinecap="round"
               strokeLinejoin="round"
+            />
+            <path
+              d={PATH_D}
+              fill="none"
+              stroke={BREATHING_BASE_STROKE}
+              strokeWidth={BREATHING_STROKE_WIDTH + 6}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity={0.82}
             />
             <path
               ref={pathRef}
               d={PATH_D}
               fill="none"
-              stroke="rgba(134,38,51,0.8)"
-              strokeWidth="6"
+              stroke="url(#infinityActiveGradient)"
+              strokeWidth={BREATHING_STROKE_WIDTH + 2}
               strokeLinecap="round"
               strokeLinejoin="round"
+              pathLength={1}
+              strokeDasharray={`${trailProgress} 1`}
+              style={{ filter: `drop-shadow(0 0 8px ${BREATHING_ACTIVE_GLOW})` }}
             />
 
             <motion.circle
               cx={dotPoint.x}
               cy={dotPoint.y}
-              r="10"
-              fill="url(#dotGradient)"
-              stroke="rgba(255,255,255,0.9)"
-              strokeWidth="2"
-              animate={
-                prefersReducedMotion
-                  ? undefined
-                  : { r: [10, 11.5, 10], filter: ["drop-shadow(0 0 6px rgba(134,38,51,0.28))", "drop-shadow(0 0 10px rgba(134,38,51,0.4))", "drop-shadow(0 0 6px rgba(134,38,51,0.28))"] }
-              }
+              r="11"
+              fill="url(#infinityDotGradient)"
+              stroke="rgba(255,255,255,0.92)"
+              strokeWidth="3"
+              style={{ filter: `drop-shadow(0 0 16px ${BREATHING_ACTIVE_GLOW})` }}
+              animate={isRunning && !prefersReducedMotion ? { r: [11, 13, 11] } : undefined}
               transition={
                 prefersReducedMotion
                   ? { duration: 0 }
-                  : { duration: 2.2, repeat: Infinity, ease: "easeInOut" }
+                  : { duration: 1.8, ease: "easeInOut", repeat: Infinity }
               }
             />
           </svg>
         </div>
+      </BreathingVisualFrame>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-gray-600">
-            <span>Cycle Progress</span>
-            <span>{Math.round(cycleProgress * 100)}%</span>
-          </div>
-          <div className="h-2 overflow-hidden rounded-full bg-gray-200">
-            <motion.div
-              className="h-full rounded-full bg-primary/80"
-              animate={{ width: `${Math.min(100, Math.max(0, cycleProgress * 100))}%` }}
-              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2, ease: "linear" }}
-            />
-          </div>
+      <div className="rounded-[1.5rem] border border-white/65 bg-white/80 px-4 py-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+          <span>Loop {displayCycle} of {TOTAL_CYCLES}</span>
+          <span>{phase}</span>
         </div>
-
-        <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={handleStartPause}
-            className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-white shadow-sm transition duration-200 hover:bg-primary-dark"
-          >
-            {actionLabel}
-          </button>
-          <button
-            type="button"
-            onClick={handleReset}
-            className="rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-medium text-dark transition duration-200 hover:bg-gray-100"
-          >
-            Reset
-          </button>
-          <button
-            type="button"
-            onClick={handleFinish}
-            disabled={clampedElapsedMs === 0 && !isRunning}
-            className="rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-medium text-dark transition duration-200 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Finish
-          </button>
+        <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-200/85">
+          <motion.div
+            className="h-full rounded-full bg-[linear-gradient(90deg,#7C6CFF_0%,#4F8CFF_55%,#5ED3B3_100%)]"
+            animate={{ width: `${cycleProgressPercent}%` }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.22, ease: "easeOut" }}
+          />
+        </div>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-600">
+          <span>{isRunning ? "Stay with the dot." : "Pause whenever you need to."}</span>
+          <span>{Math.round(cycleProgressPercent)}% through this loop</span>
         </div>
       </div>
-    </section>
+    </div>
   );
 }

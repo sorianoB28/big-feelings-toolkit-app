@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import {
   BREATHING_ACTIVE_STROKE,
+  BREATHING_ACTIVE_GLOW,
   BREATHING_BASE_STROKE,
+  BREATHING_FILL_END,
+  BREATHING_FILL_START,
   BREATHING_STROKE_WIDTH,
   BreathingVisualFrame,
 } from "@/components/tools/breathing-visual-frame";
@@ -161,8 +164,8 @@ export default function BubbleBreathingTool({
           >
             <defs>
               <radialGradient id="bubbleFillGradient" cx="50%" cy="40%" r="68%">
-                <stop offset="0%" stopColor="rgba(134, 38, 51, 0.28)" />
-                <stop offset="100%" stopColor="rgba(134, 38, 51, 0.56)" />
+                <stop offset="0%" stopColor={BREATHING_FILL_START} />
+                <stop offset="100%" stopColor={BREATHING_FILL_END} />
               </radialGradient>
             </defs>
 
@@ -186,7 +189,7 @@ export default function BubbleBreathingTool({
               strokeDasharray={GUIDE_CIRCUMFERENCE}
               strokeDashoffset={GUIDE_CIRCUMFERENCE * (1 - cycleProgressPercent / 100)}
               transform="rotate(-90 110 110)"
-              style={{ filter: "drop-shadow(0 0 4px rgba(134, 38, 51, 0.35))" }}
+              style={{ filter: `drop-shadow(0 0 4px ${BREATHING_ACTIVE_GLOW})` }}
             />
             <g transform={`translate(110 110) scale(${phase.scale}) translate(-110 -110)`}>
               <circle
@@ -197,7 +200,7 @@ export default function BubbleBreathingTool({
                 stroke={BREATHING_ACTIVE_STROKE}
                 strokeWidth={BREATHING_STROKE_WIDTH - 0.5}
                 strokeLinecap="round"
-                style={{ filter: "drop-shadow(0 0 6px rgba(134, 38, 51, 0.3))" }}
+                style={{ filter: `drop-shadow(0 0 6px ${BREATHING_ACTIVE_GLOW})` }}
               />
             </g>
           </svg>

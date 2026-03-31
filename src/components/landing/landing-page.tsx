@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { ModeToggle } from "@/components/ui/mode-toggle";
 import { buttonPrimaryClass, buttonSecondaryClass } from "@/components/ui/form-styles";
+import { useAppMode } from "@/lib/app-mode";
 
 const featureCards = [
   {
@@ -23,6 +25,8 @@ const featureCards = [
 ] as const;
 
 export function LandingPage() {
+  const { isDemoMode } = useAppMode();
+
   return (
     <div className="bg-[linear-gradient(to_bottom,#E6E6E6,#ffffff)]">
       <section className="app-container app-page relative overflow-hidden">
@@ -33,6 +37,7 @@ export function LandingPage() {
         <div className="app-card relative p-10 shadow-md">
           <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
             <div>
+              <ModeToggle showLabel className="mb-6" />
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-dark">
                 Oakestown Intermediate
               </p>
@@ -41,9 +46,11 @@ export function LandingPage() {
                 A teacher-led emotional regulation system for Oakestown students.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/auth/signin" className={buttonPrimaryClass}>
-                  Sign In
-                </Link>
+                {isDemoMode ? (
+                  <Link href="/auth/signin" className={buttonPrimaryClass}>
+                    Sign In
+                  </Link>
+                ) : null}
                 <a href="#learn-more" className={buttonSecondaryClass}>
                   Learn More
                 </a>
