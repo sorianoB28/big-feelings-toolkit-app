@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useDeferredValue, useMemo, useState } from "react";
+import { Suspense, useDeferredValue, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowUpDown, Search, Sparkles, X } from "lucide-react";
@@ -121,7 +121,39 @@ function sortTools(tools: FlatTool[], sortBy: SortOption): FlatTool[] {
   return nextTools;
 }
 
-export default function ToolsPage() {
+function ToolsPageFallback() {
+  return (
+    <div className="relative min-h-screen overflow-hidden gradient-bg">
+      <div className="pointer-events-none absolute -left-24 top-14 h-72 w-72 rounded-full bg-primary/16 blur-3xl" />
+      <div className="pointer-events-none absolute right-[-4rem] top-28 h-80 w-80 rounded-full bg-secondary/16 blur-3xl" />
+      <div className="toolkit-drift pointer-events-none absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-accent/18 blur-3xl" />
+
+      <ToolkitTopNav />
+
+      <main className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-24 pt-10 sm:px-6 sm:pt-14">
+        <section className="mx-auto max-w-6xl">
+          <div className="toolkit-surface-level-1 relative overflow-hidden px-6 py-8 sm:px-10 sm:py-12 lg:px-12 lg:py-14">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-[linear-gradient(180deg,rgba(79,140,255,0.16),rgba(124,108,255,0.08),transparent)]" />
+            <div className="pointer-events-none absolute -left-8 top-0 h-40 w-40 rounded-full bg-white/65 blur-3xl" />
+            <div className="pointer-events-none absolute right-10 top-8 h-48 w-48 rounded-full bg-secondary/14 blur-3xl" />
+
+            <div className="relative max-w-2xl">
+              <Badge className="bg-white/84 text-primary-dark shadow-sm">Full Toolkit Library</Badge>
+              <h1 className="mt-6">Browse every tool in one calm library grid</h1>
+              <p className="mt-5 text-base leading-8 text-slate-600 sm:text-lg">
+                Loading the toolkit library...
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <ToolkitFooter />
+    </div>
+  );
+}
+
+function ToolsPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -549,5 +581,13 @@ export default function ToolsPage() {
 
       <ToolkitFooter />
     </div>
+  );
+}
+
+export default function ToolsPage() {
+  return (
+    <Suspense fallback={<ToolsPageFallback />}>
+      <ToolsPageContent />
+    </Suspense>
   );
 }
