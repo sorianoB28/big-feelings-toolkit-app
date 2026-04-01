@@ -67,7 +67,7 @@ export default function GuidedCheckInStepPage({ params }: GuidedCheckInStepPageP
             </Link>
           ) : (
             <Link href="/tools" className={toolkitButtonPrimaryClass}>
-              Open Toolkit Library
+              Browse Toolkit Library
             </Link>
           )}
         </div>

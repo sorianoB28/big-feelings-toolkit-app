@@ -104,9 +104,8 @@ const QUICK_ENTRY_RECOMMENDATION_LABELS = [
 ] as const;
 
 const TOOLKIT_LIBRARY_HREF = "/tools#tool-library";
-const QUICK_PICK_SECTION_HREF = "#quick-pick";
-const FEATURED_SECTION_HREF = "#featured-tools";
 const GUIDED_CHECK_IN_HREF = "/check-in/zone";
+const PUBLIC_STRATEGIES_HREF = "/strategies";
 
 function getQuickEntryRecommendationDescription(description: string): string {
   const normalized = description.replace(/\s+/g, " ").trim();
@@ -410,36 +409,36 @@ export function ToolkitHomepage({
           <div className="relative">
             <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
               <motion.div variants={fadeInUp} className="mx-auto max-w-2xl text-center lg:mx-0 lg:text-left">
-                <Badge className="bg-white/80 text-primary-dark shadow-sm">Toolkit Home</Badge>
+                <Badge className="bg-white/80 text-primary-dark shadow-sm">Public Toolkit</Badge>
                 <h1 className="mt-5">Reset. Breathe. Refocus.</h1>
                 <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg lg:mx-0">
-                  Start with the full toolkit library, then open the breathing, grounding, movement,
-                  or support tool that fits this moment best.
+                  Start with a guided check-in, browse the toolkit library, or explore coping
+                  strategies based on what feels most useful right now.
                 </p>
 
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
-                  <Link href={TOOLKIT_LIBRARY_HREF} className={toolkitButtonPrimaryClass}>
-                    Open Toolkit Library
-                  </Link>
-                  <Link href={GUIDED_CHECK_IN_HREF} className={toolkitButtonSecondaryClass}>
+                  <Link href={GUIDED_CHECK_IN_HREF} className={toolkitButtonPrimaryClass}>
                     Start a Check-In
                   </Link>
-                  <Link href={QUICK_PICK_SECTION_HREF} className={toolkitButtonSecondaryClass}>
-                    Use Quick Entry
+                  <Link href={TOOLKIT_LIBRARY_HREF} className={toolkitButtonSecondaryClass}>
+                    Browse Toolkit Library
+                  </Link>
+                  <Link href={PUBLIC_STRATEGIES_HREF} className={toolkitButtonSecondaryClass}>
+                    View Strategies
                   </Link>
                 </div>
 
                 <p className="mt-4 text-sm font-medium text-primary-dark/80">
-                  Not sure where to begin? Try a guided check-in, or move straight into the library for the full toolkit experience.
+                  Choose the path that fits this moment: guided check-in, the full toolkit library,
+                  or the standalone strategies page.
                 </p>
 
                 <div className="toolkit-panel mt-8 p-5 text-left sm:p-6">
-                  <p className="toolkit-eyebrow">
-                    Library-first flow
-                  </p>
+                  <p className="toolkit-eyebrow">Three ways to begin</p>
                   <p className="toolkit-body-copy mt-3">
-                    Featured tools, quick-entry suggestions, and category browse are all short paths
-                    that lead back into the same calm library destination.
+                    Use check-in when you want guidance, the Toolkit Library when you want every
+                    tool in one place, or Strategies when you want coping ideas without completing a
+                    check-in.
                   </p>
                 </div>
               </motion.div>
@@ -475,9 +474,9 @@ export function ToolkitHomepage({
 
             <motion.div variants={staggerContainer} className="mt-10 grid gap-3 sm:grid-cols-3">
               {[
-                "Open the full library when you want the clearest overview.",
-                "Use featured tools and quick entry when you want a faster starting point.",
-                "Built for real school-day reset moments without extra friction.",
+                "Start a check-in when you want the toolkit to narrow the next step.",
+                "Browse the library when you want every tool in one place.",
+                "View strategies when you want coping ideas by category.",
               ].map((message) => (
                 <motion.div
                   key={message}
@@ -507,21 +506,21 @@ export function ToolkitHomepage({
           <div className="relative grid gap-6 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
             <div className="max-w-2xl">
               <Badge variant="outline" className="bg-white/78">
-                Core Library
+                Toolkit Library
               </Badge>
-              <h2 className="mt-4">Everything opens into the Toolkit Library</h2>
+              <h2 className="mt-4">Browse the Toolkit Library any time</h2>
               <p className="toolkit-body-copy mt-3">
-                This is the main destination of the public Toolkit. Featured tools, quick-entry
-                recommendations, and category browse all help you arrive here with a little more
-                clarity about what to open next.
+                The Toolkit Library is one of the main public paths through Big Feelings Toolkit.
+                Use it when you want the full set of tools in one place, then narrow by category,
+                featured picks, or quick entry only when it helps.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-2">
                 {[
                   `${totalToolCount} tools`,
                   `${categoryPreviews.length} categories`,
-                  "Quick feeling entry",
-                  "Featured library highlights",
+                  "Guided check-in support",
+                  "Strategies by category",
                 ].map((item) => (
                   <span
                     key={item}
@@ -534,10 +533,10 @@ export function ToolkitHomepage({
 
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 <Link href={TOOLKIT_LIBRARY_HREF} className={toolkitButtonPrimaryClass}>
-                  Open Toolkit Library
+                  Browse Toolkit Library
                 </Link>
-                <Link href={FEATURED_SECTION_HREF} className="toolkit-link-inline">
-                  See the homepage shortcuts
+                <Link href={PUBLIC_STRATEGIES_HREF} className="toolkit-link-inline">
+                  View Strategies
                 </Link>
               </div>
             </div>
@@ -546,15 +545,15 @@ export function ToolkitHomepage({
               {[
                 {
                   title: "Featured tools",
-                  description: "Start with a few polished highlights, then keep browsing in the full library.",
+                  description: "Start with a few polished highlights before diving deeper into the library.",
                 },
                 {
-                  title: "Quick entry",
-                  description: "Pick a feeling for a fast recommendation, then open the tool that fits.",
+                  title: "Guided check-in",
+                  description: "Move through one calm step at a time when you want help choosing a tool.",
                 },
                 {
-                  title: "Browse categories",
-                  description: "Explore calm body, reset mind, release energy, or get support in one place.",
+                  title: "Strategies library",
+                  description: "Explore coping ideas by category without needing to finish a check-in.",
                 },
               ].map((item) => (
                 <div
@@ -583,14 +582,14 @@ export function ToolkitHomepage({
         <motion.div variants={fadeInUp} className="flex flex-wrap items-end justify-between gap-4">
           <div className="max-w-2xl">
             <Badge>Library Highlights</Badge>
-            <h2 className="mt-4">A few favorite tools from the full library</h2>
+            <h2 className="mt-4">A few strong starting tools from the library</h2>
             <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">
-              These are a few good places to begin, but they are still part of the larger Toolkit
-              Library where you can browse by category, feeling, and need.
+              These are a few good places to begin, and you can always keep browsing the Toolkit
+              Library for more options by category, feeling, and need.
             </p>
           </div>
           <Link href={TOOLKIT_LIBRARY_HREF} className="toolkit-link-inline">
-            Open the full library
+            Browse the full library
           </Link>
         </motion.div>
 
@@ -656,14 +655,14 @@ export function ToolkitHomepage({
                   <Badge>Quick Entry</Badge>
                   <h2 className="mt-4">How are you feeling?</h2>
                   <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">
-                    Use this when you want the fastest path into the Toolkit Library. Pick a feeling
-                    and we&apos;ll point you toward a few tools that fit this moment right away.
+                    Use this when you want a fast starting point. Pick a feeling and we&apos;ll point
+                    you toward a few tools that fit this moment right away.
                   </p>
                 </div>
                 <div className="toolkit-panel hidden px-4 py-3 text-left lg:block">
                   <p className="toolkit-eyebrow text-primary-dark/65">Quick picks</p>
                   <p className="mt-2 text-sm font-semibold text-dark">
-                    The fastest route into the library when you need a starting point.
+                    A fast way to narrow toward a next tool when you do not want to browse first.
                   </p>
                 </div>
               </div>
@@ -1013,9 +1012,9 @@ export function ToolkitHomepage({
 
               <div className="grid gap-3">
                 {[
-                  "Open Toolkit mode without a login.",
+                  "Use the public toolkit without a login.",
                   "Short guided tools that feel clear, calm, and usable fast.",
-                  "Breathing, grounding, movement, and support in one public library.",
+                  "Browse the Toolkit Library or Strategies page any time.",
                   "Guided check-in available when you want help choosing a starting point.",
                 ].map((item) => (
                   <motion.div key={item} variants={fadeInUp} className="toolkit-panel px-4 py-4 text-sm leading-6 text-slate-600">
@@ -1029,20 +1028,20 @@ export function ToolkitHomepage({
               <div className="max-w-2xl">
                 <p className="toolkit-eyebrow">Ready to start?</p>
                 <p className="mt-2 text-base font-semibold text-dark sm:text-lg">
-                  Open the Toolkit Library for the full experience, or jump back to quick entry when
-                  you want a fast starting point.
+                  Start a check-in for guidance, browse the Toolkit Library for every tool, or
+                  explore Strategies when you want category-based coping ideas.
                 </p>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
-                <Link href={TOOLKIT_LIBRARY_HREF} className={toolkitButtonPrimaryClass}>
-                  Open Toolkit Library
-                </Link>
-                <Link href={GUIDED_CHECK_IN_HREF} className={toolkitButtonSecondaryClass}>
+                <Link href={GUIDED_CHECK_IN_HREF} className={toolkitButtonPrimaryClass}>
                   Start a Check-In
                 </Link>
-                <Link href={QUICK_PICK_SECTION_HREF} className={toolkitButtonGhostClass}>
-                  Back to Quick Entry
+                <Link href={TOOLKIT_LIBRARY_HREF} className={toolkitButtonSecondaryClass}>
+                  Browse Toolkit Library
+                </Link>
+                <Link href={PUBLIC_STRATEGIES_HREF} className={toolkitButtonGhostClass}>
+                  View Strategies
                 </Link>
               </div>
             </div>

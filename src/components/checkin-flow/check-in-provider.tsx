@@ -5,6 +5,7 @@ import {
   useEffect,
   useContext,
   useMemo,
+  useState,
   useReducer,
   type PropsWithChildren,
 } from "react";
@@ -20,6 +21,7 @@ type GuidedCheckInAction =
   | { type: "toggle-body-clue"; bodyClueKey: string }
   | { type: "set-tool"; toolKey: string | null }
   | { type: "toggle-strategy"; strategyKey: CheckinStrategyKey }
+  | { type: "hydrate"; snapshot: Partial<GuidedCheckInState> }
   | { type: "reset" };
 
 type GuidedCheckInContextValue = {
@@ -37,6 +39,17 @@ const GuidedCheckInContext = createContext<GuidedCheckInContextValue | null>(nul
 
 function toggleValue<T extends string>(values: T[], value: T): T[] {
   return values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
+}
+
+function mergeGuidedCheckInState(snapshot: Partial<GuidedCheckInState>): GuidedCheckInState {
+  return {
+    ...INITIAL_GUIDED_CHECKIN_STATE,
+    ...snapshot,
+    bodyClueKeys: Array.isArray(snapshot.bodyClueKeys) ? snapshot.bodyClueKeys : [],
+    selectedStrategyKeys: Array.isArray(snapshot.selectedStrategyKeys)
+      ? snapshot.selectedStrategyKeys
+      : [],
+  };
 }
 
 function guidedCheckInReducer(
@@ -89,6 +102,8 @@ function guidedCheckInReducer(
         ...state,
         selectedStrategyKeys: toggleValue(state.selectedStrategyKeys, action.strategyKey),
       };
+    case "hydrate":
+      return mergeGuidedCheckInState(action.snapshot);
     case "reset":
       return INITIAL_GUIDED_CHECKIN_STATE;
     default:
@@ -97,44 +112,40 @@ function guidedCheckInReducer(
 }
 
 export function GuidedCheckInProvider({ children }: PropsWithChildren) {
-  const [state, dispatch] = useReducer(
-    guidedCheckInReducer,
-    INITIAL_GUIDED_CHECKIN_STATE,
-    (initialState) => {
-      if (typeof window === "undefined") {
-        return initialState;
-      }
-
-      const rawValue = window.sessionStorage.getItem(GUIDED_CHECKIN_STORAGE_KEY);
-
-      if (!rawValue) {
-        return initialState;
-      }
-
-      try {
-        const parsed = JSON.parse(rawValue) as Partial<GuidedCheckInState>;
-
-        return {
-          ...initialState,
-          ...parsed,
-          bodyClueKeys: Array.isArray(parsed.bodyClueKeys) ? parsed.bodyClueKeys : [],
-          selectedStrategyKeys: Array.isArray(parsed.selectedStrategyKeys)
-            ? parsed.selectedStrategyKeys
-            : [],
-        };
-      } catch {
-        return initialState;
-      }
-    }
-  );
+  const [state, dispatch] = useReducer(guidedCheckInReducer, INITIAL_GUIDED_CHECKIN_STATE);
+  const [hasHydratedFromStorage, setHasHydratedFromStorage] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") {
+      setHasHydratedFromStorage(true);
       return;
     }
 
-    window.sessionStorage.setItem(GUIDED_CHECKIN_STORAGE_KEY, JSON.stringify(state));
-  }, [state]);
+    try {
+      const rawValue = window.sessionStorage.getItem(GUIDED_CHECKIN_STORAGE_KEY);
+
+      if (rawValue) {
+        const parsed = JSON.parse(rawValue) as Partial<GuidedCheckInState>;
+        dispatch({ type: "hydrate", snapshot: parsed });
+      }
+    } catch {
+      // Ignore malformed or inaccessible storage so first render stays stable.
+    } finally {
+      setHasHydratedFromStorage(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !hasHydratedFromStorage) {
+      return;
+    }
+
+    try {
+      window.sessionStorage.setItem(GUIDED_CHECKIN_STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // Ignore storage write failures so the public flow still works.
+    }
+  }, [hasHydratedFromStorage, state]);
 
   const value = useMemo<GuidedCheckInContextValue>(
     () => ({

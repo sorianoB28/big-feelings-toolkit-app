@@ -18,8 +18,12 @@ function readFromStorage(): boolean {
     return false;
   }
 
-  const raw = window.localStorage.getItem(STORAGE_KEY);
-  return raw === "1";
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    return raw === "1";
+  } catch {
+    return false;
+  }
 }
 
 function writeToStorage(value: boolean): void {
@@ -27,7 +31,11 @@ function writeToStorage(value: boolean): void {
     return;
   }
 
-  window.localStorage.setItem(STORAGE_KEY, value ? "1" : "0");
+  try {
+    window.localStorage.setItem(STORAGE_KEY, value ? "1" : "0");
+  } catch {
+    // Ignore storage write failures so the public UI still renders.
+  }
 }
 
 function notify(value: boolean): void {
@@ -116,4 +124,3 @@ export function useClassroomSafeMode(): {
     toggleSafeMode: toggleSafeModeHandler,
   };
 }
-

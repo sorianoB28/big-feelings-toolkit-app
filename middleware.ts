@@ -1,6 +1,5 @@
 import { getToken } from "next-auth/jwt";
 import { NextResponse, type NextRequest } from "next/server";
-import { APP_MODE_COOKIE_KEY, DEFAULT_APP_MODE, isAppMode } from "@/lib/app-mode-config";
 
 const PROTECTED_ROUTE_PREFIXES = [
   "/dashboard",
@@ -18,22 +17,11 @@ function isProtectedPath(pathname: string): boolean {
   );
 }
 
-function getRequestMode(request: NextRequest) {
-  const cookieMode = request.cookies.get(APP_MODE_COOKIE_KEY)?.value;
-  return isAppMode(cookieMode) ? cookieMode : DEFAULT_APP_MODE;
-}
-
 export default async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   if (!isProtectedPath(pathname)) {
     return NextResponse.next();
-  }
-
-  const mode = getRequestMode(request);
-
-  if (mode === "toolkit") {
-    return NextResponse.redirect(new URL("/toolkit", request.url));
   }
 
   const token = await getToken({

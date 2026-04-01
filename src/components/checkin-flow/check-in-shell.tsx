@@ -76,7 +76,7 @@ export function GuidedCheckInShell({ children }: GuidedCheckInShellProps) {
                 className="bg-white/82"
               />
               <Link href="/tools" className={toolkitButtonSecondaryClass}>
-                Open Toolkit Library
+                Browse Toolkit Library
               </Link>
             </div>
           </div>

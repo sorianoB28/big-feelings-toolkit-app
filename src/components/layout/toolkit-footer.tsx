@@ -19,7 +19,7 @@ export function ToolkitFooter({ className }: ToolkitFooterProps) {
                 Public Toolkit
               </p>
               <p className="mt-1 text-sm text-slate-600">
-                Calm tools for quick school-day reset moments.
+                Public tools, check-ins, and strategies for school-day reset moments.
               </p>
             </div>
             <ToolkitPrivacyBanner variant="footer" className="justify-center" />

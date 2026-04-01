@@ -19,21 +19,21 @@ type VariantConfig = {
 
 const variantConfig: Record<BrandHeaderProps["variant"], VariantConfig> = {
   sidebar: {
-    logoSize: 34,
+    logoSize: 58,
     titleClassName: "text-base font-semibold tracking-tight text-dark",
     subtitle: "Teacher-led emotional regulation",
     subtitleClassName: "text-xs text-gray-600",
     dividerWidthClassName: "w-14",
   },
   auth: {
-    logoSize: 40,
+    logoSize: 80,
     titleClassName: "text-xl font-semibold tracking-tight text-dark",
     subtitle: "Oakestown Intermediate School",
     subtitleClassName: "text-sm text-gray-600",
     dividerWidthClassName: "w-16",
   },
   compact: {
-    logoSize: 30,
+    logoSize: 50,
     titleClassName: "text-base font-semibold tracking-tight text-dark",
     dividerWidthClassName: "w-12",
   },
@@ -44,14 +44,19 @@ export function BrandHeader({ variant, showSchoolBadge = false, className }: Bra
 
   return (
     <div className={cn("inline-flex items-center gap-3", className)}>
-      <Image
-        src="/images/toolkitlogo.png"
-        alt="Big Feelings Toolkit logo"
-        width={config.logoSize}
-        height={config.logoSize}
-        className="h-auto w-auto shrink-0"
-        priority={variant !== "sidebar"}
-      />
+      <div
+        className="relative shrink-0 overflow-hidden rounded-[1.35rem]"
+        style={{ width: config.logoSize, height: config.logoSize }}
+      >
+        <Image
+          src="/images/bigfeelingtoolkitlogo-focus.png"
+          alt="Big Feelings Toolkit logo"
+          fill
+          sizes={`${config.logoSize}px`}
+          className="object-contain"
+          priority={variant !== "sidebar"}
+        />
+      </div>
 
       <div className="min-w-0">
         <p className={config.titleClassName}>Big Feelings Toolkit</p>

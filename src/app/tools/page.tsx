@@ -68,8 +68,8 @@ const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
 ];
 
 const TOOL_LIBRARY_ANCHOR_HREF = "/tools#tool-library";
-const TOOLKIT_QUICK_PICK_HREF = "/toolkit#quick-pick";
 const GUIDED_CHECK_IN_HREF = "/check-in/zone";
+const PUBLIC_STRATEGIES_HREF = "/strategies";
 
 function getDurationLabel(durationSeconds: number): string {
   const minutes = Math.max(1, Math.round(durationSeconds / 60));
@@ -301,22 +301,20 @@ function ToolsPageContent() {
                     <Link href={GUIDED_CHECK_IN_HREF} className={toolkitButtonSecondaryClass}>
                       Start a Check-In
                     </Link>
-                    <Link href={TOOLKIT_QUICK_PICK_HREF} className={toolkitButtonSecondaryClass}>
-                      Start from Quick Entry
+                    <Link href={PUBLIC_STRATEGIES_HREF} className={toolkitButtonSecondaryClass}>
+                      View Strategies
                     </Link>
                   </motion.div>
 
                   <div className="toolkit-panel mt-8 p-5 text-left sm:p-6">
-                    <p className="toolkit-eyebrow">
-                      Library-first layout
-                    </p>
+                    <p className="toolkit-eyebrow">Full-library view</p>
                     <p className="toolkit-body-copy mt-3">
                       The default view keeps the whole toolkit visible, while categories, search, and
                       sorting stay available as lighter supporting controls.
                     </p>
                     <p className="mt-3 text-sm leading-6 text-slate-600">
-                      If you want help deciding where to start, the guided check-in can point you
-                      toward a tool before you browse the full grid.
+                      If you want the toolkit to narrow the options first, start a check-in or
+                      browse the strategies library by category.
                     </p>
                   </div>
                 </motion.div>
@@ -590,8 +588,8 @@ function ToolsPageContent() {
                     >
                       Reset View
                     </button>
-                    <Link href={TOOLKIT_QUICK_PICK_HREF} className={toolkitButtonPrimaryClass}>
-                      Use Quick Entry
+                    <Link href={GUIDED_CHECK_IN_HREF} className={toolkitButtonPrimaryClass}>
+                      Start a Check-In
                     </Link>
                   </div>
                 </div>

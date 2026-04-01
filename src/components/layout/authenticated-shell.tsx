@@ -5,8 +5,6 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { BrandHeader } from "@/components/brand/brand-header";
-import { ModeToggle } from "@/components/ui/mode-toggle";
-import { useAppMode } from "@/lib/app-mode";
 import { navIcons } from "@/lib/icons";
 import type { AppRole } from "@/types/auth";
 
@@ -66,14 +64,12 @@ function getAvatarLabel(name: string | null, email: string): string {
 
 export function AuthenticatedShell({ user, links, children }: AuthenticatedShellProps) {
   const pathname = usePathname();
-  const { isDemoMode } = useAppMode();
   const pageTitle = getPageTitle(pathname);
   const avatarLabel = getAvatarLabel(user.name, user.email);
-  const visibleLinks = isDemoMode ? links : [];
 
   return (
     <div className="flex min-h-0 flex-1 bg-background">
-      {visibleLinks.length > 0 ? (
+      {links.length > 0 ? (
         <aside className="w-64 shrink-0 border-r border-gray-200 bg-white">
           <div className="flex h-full flex-col px-4 py-5">
             <div className="border-b border-border-soft/80 pb-4">
@@ -81,7 +77,7 @@ export function AuthenticatedShell({ user, links, children }: AuthenticatedShell
             </div>
 
             <nav className="mt-3 flex-1 space-y-1">
-              {visibleLinks.map((link) => {
+              {links.map((link) => {
                 const active = isActivePath(pathname, link.href);
                 const Icon = navIcons[getNavIconKey(link.href)];
 
@@ -119,7 +115,6 @@ export function AuthenticatedShell({ user, links, children }: AuthenticatedShell
           <h1 className="text-lg font-semibold text-dark">{pageTitle}</h1>
 
           <div className="flex items-center gap-3">
-            <ModeToggle />
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary-dark">
               {avatarLabel}
             </div>

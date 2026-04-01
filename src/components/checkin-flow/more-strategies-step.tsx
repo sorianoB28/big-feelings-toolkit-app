@@ -51,14 +51,14 @@ function orderCardsForCategory(
 
 type StrategyCardPanelProps = {
   card: CheckinStrategyCard;
-  isFeatured?: boolean;
+  showRelevantBadge?: boolean;
   isSaved: boolean;
   onToggleSaved: () => void;
 };
 
 function StrategyCardPanel({
   card,
-  isFeatured = false,
+  showRelevantBadge = false,
   isSaved,
   onToggleSaved,
 }: StrategyCardPanelProps) {
@@ -69,25 +69,25 @@ function StrategyCardPanel({
       whileHover={prefersReducedMotion ? undefined : { y: -2 }}
       transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: "easeOut" }}
       className={cn(
-        "overflow-hidden rounded-[1.75rem] border border-white/72 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,248,255,0.95))] shadow-[0_24px_48px_-36px_rgba(79,140,255,0.24)]",
-        isFeatured && "border-primary/24 shadow-[0_28px_56px_-38px_rgba(79,140,255,0.32)]",
+        "relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-white/72 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,248,255,0.95))] shadow-[0_24px_48px_-36px_rgba(79,140,255,0.24)]",
+        showRelevantBadge && "border-primary/24 shadow-[0_28px_56px_-38px_rgba(79,140,255,0.32)]",
         isSaved && "ring-2 ring-primary/12"
       )}
     >
-      <div className="p-3">
+      <div className="relative shrink-0 p-3">
         <CheckInImageFrame
           src={card.imagePath}
           alt={card.alt}
           sizes="(min-width: 1280px) 18rem, (min-width: 768px) 30vw, 100vw"
         />
-        {isFeatured ? (
-          <div className="absolute left-6 top-6 rounded-full bg-primary-dark px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white shadow-sm">
+        {showRelevantBadge ? (
+          <div className="pointer-events-none absolute left-6 top-6 z-10 rounded-full bg-primary-dark px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white shadow-sm">
             Relevant now
           </div>
         ) : null}
       </div>
 
-      <div className="px-5 pb-5 pt-1">
+      <div className="flex flex-1 flex-col px-5 pb-5 pt-1">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-dark/62">
@@ -101,7 +101,7 @@ function StrategyCardPanel({
           {isSaved ? <CheckCircle2 className="mt-1 h-5 w-5 text-primary-dark" /> : null}
         </div>
 
-        <div className="mt-4 space-y-4 text-sm leading-6 text-slate-600">
+        <div className="mt-4 flex-1 space-y-4 text-sm leading-6 text-slate-600">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-primary-dark/60">
               How to
@@ -181,6 +181,37 @@ export function MoreStrategiesStep() {
     [featuredStrategies]
   );
 
+  const recommendedStrategyKeySet = useMemo(
+    () => new Set(recommendation.recommendedStrategyIds),
+    [recommendation.recommendedStrategyIds]
+  );
+
+  const recommendationSignalLabels = useMemo(() => {
+    const zoneLabel = selectedZone?.label;
+
+    if (!zoneLabel) {
+      return [] as string[];
+    }
+
+    const labels: string[] = [zoneLabel];
+
+    if (selectedFeelingLabel) {
+      labels.push(selectedFeelingLabel);
+    }
+
+    if (state.bodyClueKeys.length > 0) {
+      labels.push(
+        `${state.bodyClueKeys.length} body clue${state.bodyClueKeys.length === 1 ? "" : "s"}`
+      );
+    }
+
+    if (state.selectedToolKey) {
+      labels.push("tool used");
+    }
+
+    return labels;
+  }, [selectedFeelingLabel, selectedZone?.label, state.bodyClueKeys.length, state.selectedToolKey]);
+
   const orderedCategoryKeys = useMemo(() => {
     const recommendedCategoryKeys = [
       ...recommendation.recommendedStrategyCategoryKeys,
@@ -205,12 +236,19 @@ export function MoreStrategiesStep() {
         orderedCategoryKeys.map((categoryKey) => [
           categoryKey,
           orderCardsForCategory(
-            readyStrategyCards.filter((card) => card.category === categoryKey),
+            readyStrategyCards.filter(
+              (card) => card.category === categoryKey && !featuredStrategyKeySet.has(card.key)
+            ),
             recommendedOrder
           ),
         ])
       ),
-    [orderedCategoryKeys, recommendedOrder]
+    [featuredStrategyKeySet, orderedCategoryKeys, recommendedOrder]
+  );
+
+  const visibleCategoryKeys = useMemo(
+    () => orderedCategoryKeys.filter((categoryKey) => (cardsByCategory.get(categoryKey) ?? []).length > 0),
+    [cardsByCategory, orderedCategoryKeys]
   );
 
   function handleStartOver() {
@@ -305,7 +343,7 @@ export function MoreStrategiesStep() {
           <div className="pointer-events-none absolute right-0 top-6 h-36 w-36 rounded-full bg-primary/12 blur-3xl" />
 
           <div className="relative">
-            <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="grid gap-5 lg:grid-cols-[1.12fr_0.88fr]">
               <div className="max-w-3xl">
                 <div className="flex items-center gap-2 text-primary-dark">
                   <Sparkles className="h-4 w-4" />
@@ -314,22 +352,49 @@ export function MoreStrategiesStep() {
                   </p>
                 </div>
                 <h3 className="mt-3 text-[1.65rem] tracking-[-0.04em] text-dark">
-                  Start with the strategies most connected to your check-in.
+                  These are the strongest matches from the larger strategy library.
                 </h3>
                 <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
-                  These cards are prioritized from your zone, feeling, and body clues so the first
-                  ideas feel easier to try right away.
+                  Start here first. These cards are prioritized from your zone, feeling, body
+                  clues, and reset path so the first ideas feel clearly tied to this check-in.
                 </p>
               </div>
 
-              <div className="rounded-[1.35rem] border border-white/76 bg-white/82 px-4 py-4 shadow-sm">
+              <aside className="toolkit-panel px-5 py-5 sm:px-6 sm:py-6">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-dark/62">
-                  Saved ideas
+                  Chosen from the library
                 </p>
-                <p className="mt-2 text-[1.45rem] font-semibold tracking-[-0.03em] text-dark">
-                  {state.selectedStrategyKeys.length}
+                <p className="mt-3 text-sm leading-6 text-slate-600">
+                  These top picks were selected from the wider strategies library so you can start
+                  with the most relevant options before browsing further.
                 </p>
-              </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {recommendationSignalLabels.map((label) => (
+                    <span
+                      key={label}
+                      className="rounded-full border border-white/70 bg-white/84 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-dark shadow-sm"
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="mt-5 flex items-center justify-between gap-3 rounded-[1.25rem] border border-white/76 bg-white/84 px-4 py-4 shadow-sm">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-dark/62">
+                      Saved ideas
+                    </p>
+                    <p className="mt-2 text-[1.45rem] font-semibold tracking-[-0.03em] text-dark">
+                      {state.selectedStrategyKeys.length}
+                    </p>
+                  </div>
+
+                  <Link href="/strategies" className={toolkitButtonSecondaryClass}>
+                    See all strategies
+                  </Link>
+                </div>
+              </aside>
             </div>
 
             <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -337,7 +402,7 @@ export function MoreStrategiesStep() {
                 <StrategyCardPanel
                   key={card.key}
                   card={card}
-                  isFeatured
+                  showRelevantBadge={recommendedStrategyKeySet.has(card.key)}
                   isSaved={state.selectedStrategyKeys.includes(card.key)}
                   onToggleSaved={() => toggleStrategy(card.key)}
                 />
@@ -351,15 +416,16 @@ export function MoreStrategiesStep() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="max-w-3xl">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary-dark/68">
-              Browse by category
+              More from the library
             </p>
             <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">
-              You can still browse the full strategy set. The most relevant categories appear first.
+              If you want a few more options, keep browsing here. Categories stay ordered around
+              your check-in, while the strongest matches stay highlighted above.
             </p>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {orderedCategoryKeys.map((categoryKey) => {
+            {visibleCategoryKeys.map((categoryKey) => {
               const category = strategyCategoryByKey.get(categoryKey);
               const isRecommended = recommendation.recommendedStrategyCategoryKeys.includes(categoryKey);
 
@@ -387,7 +453,7 @@ export function MoreStrategiesStep() {
       </section>
 
       <div className="space-y-5">
-        {orderedCategoryKeys.map((categoryKey) => {
+        {visibleCategoryKeys.map((categoryKey) => {
           const category = strategyCategoryByKey.get(categoryKey);
           const cards = cardsByCategory.get(categoryKey) ?? [];
 
@@ -397,7 +463,7 @@ export function MoreStrategiesStep() {
 
           const isRecommendedCategory =
             recommendation.recommendedStrategyCategoryKeys.includes(categoryKey) ||
-            cards.some((card) => featuredStrategyKeySet.has(card.key));
+            cards.some((card) => recommendedStrategyKeySet.has(card.key));
 
           return (
             <section
@@ -451,7 +517,7 @@ export function MoreStrategiesStep() {
 
           <div className="flex flex-wrap gap-3">
             <Link href="/tools" className={toolkitButtonSecondaryClass}>
-              Open Toolkit Library
+              Browse Toolkit Library
             </Link>
             <button
               type="button"

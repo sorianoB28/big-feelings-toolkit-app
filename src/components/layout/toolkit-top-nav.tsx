@@ -3,22 +3,32 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ModeToggle } from "@/components/ui/mode-toggle";
 import { toolkitButtonPrimaryClass } from "@/components/ui/form-styles";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { href: "/toolkit", label: "Home" },
-  { href: "/tools", label: "Toolkit Library" },
+  {
+    href: "/toolkit",
+    label: "Home",
+    isActive: (pathname: string) => pathname === "/toolkit",
+  },
+  {
+    href: "/tools",
+    label: "Toolkit Library",
+    isActive: (pathname: string) => pathname === "/tools" || pathname.startsWith("/tools/"),
+  },
+  {
+    href: "/check-in",
+    label: "Check-In",
+    isActive: (pathname: string) => pathname === "/check-in" || pathname.startsWith("/check-in/"),
+  },
+  {
+    href: "/strategies",
+    label: "Strategies",
+    isActive: (pathname: string) =>
+      pathname === "/strategies" || pathname.startsWith("/strategies/"),
+  },
 ] as const;
-
-function isActiveLink(pathname: string, href: string): boolean {
-  if (href === "/toolkit") {
-    return pathname === "/toolkit";
-  }
-
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
 
 export function ToolkitTopNav() {
   const pathname = usePathname();
@@ -34,13 +44,13 @@ export function ToolkitTopNav() {
             aria-label="Go to toolkit home page"
             className="toolkit-focus-ring flex min-w-0 items-center gap-3 rounded-[1.4rem] px-1 py-1"
           >
-            <div className="relative h-12 w-12 overflow-hidden rounded-[1.25rem] border border-white/70 bg-white/80 shadow-sm">
+            <div className="relative h-16 w-16 overflow-hidden rounded-[1.5rem] border border-white/70 bg-white/88 shadow-sm sm:h-[4.5rem] sm:w-[4.5rem]">
               <Image
-                src="/images/toolkitlogo.png"
+                src="/images/bigfeelingtoolkitlogo-focus.png"
                 alt="Big Feelings Toolkit"
                 fill
-                sizes="48px"
-                className="object-contain p-1.5"
+                sizes="(min-width: 640px) 72px, 64px"
+                className="object-contain p-0.5"
                 priority
               />
             </div>
@@ -55,7 +65,7 @@ export function ToolkitTopNav() {
           <div className="flex flex-1 flex-wrap items-center justify-end gap-3">
             <nav className="order-3 flex w-full flex-wrap items-center gap-2 sm:order-1 sm:w-auto">
               {navLinks.map((link) => {
-                const active = isActiveLink(pathname, link.href);
+                const active = link.isActive(pathname);
 
                 return (
                   <Link
@@ -75,12 +85,8 @@ export function ToolkitTopNav() {
               })}
             </nav>
 
-            <div className="order-1 sm:order-2">
-              <ModeToggle />
-            </div>
-
-            <Link href="/tools" className={cn(toolkitButtonPrimaryClass, "order-2 sm:order-3")}>
-              Open Library
+            <Link href="/check-in" className={cn(toolkitButtonPrimaryClass, "order-2 sm:order-3")}>
+              Start a Check-In
             </Link>
           </div>
         </div>
