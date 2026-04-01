@@ -17,6 +17,7 @@ type ToolPageClientProps = {
   from?: string | null;
   zone?: string | null;
   intent?: string | null;
+  returnTo?: string | null;
   checkinId?: string | null;
   studentId?: string | null;
   themeKey?: string | null;
@@ -27,19 +28,21 @@ export function ToolPageClient({
   from = null,
   zone = null,
   intent = null,
+  returnTo = null,
   checkinId = null,
   studentId = null,
   themeKey = null,
 }: ToolPageClientProps) {
   const { mode: appMode } = useAppMode();
   const tool = getToolByKey(toolKey);
+  const isGuidedCheckinContext = from === "check-in";
   const runnerMode: AppMode =
     from === "checkin" ||
     from === "reset" ||
     Boolean(checkinId?.trim()) ||
     Boolean(studentId?.trim())
       ? "demo"
-      : from === "toolkit"
+      : from === "toolkit" || isGuidedCheckinContext
         ? "toolkit"
         : appMode;
 
@@ -111,6 +114,7 @@ export function ToolPageClient({
       from={from}
       zone={zone}
       intent={intent}
+      returnTo={returnTo}
       checkinId={checkinId}
       studentId={studentId}
       themeKey={themeKey}

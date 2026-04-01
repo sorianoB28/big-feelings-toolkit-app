@@ -6,12 +6,14 @@ import { cn } from "@/lib/utils";
 
 type ToolkitPrivacyBannerProps = {
   className?: string;
+  message?: string;
   visible?: boolean;
   variant?: "inline" | "footer";
 };
 
 export function ToolkitPrivacyBanner({
   className,
+  message = "This toolkit does not save any personal data.",
   visible,
   variant = "inline",
 }: ToolkitPrivacyBannerProps) {
@@ -43,7 +45,7 @@ export function ToolkitPrivacyBanner({
       >
         <ShieldCheck className="h-3.5 w-3.5" />
       </span>
-      <p className="leading-5">This toolkit does not save any personal data.</p>
+      <p className="leading-5">{message}</p>
     </div>
   );
 }

@@ -20,6 +20,7 @@ type ToolLibraryCardProps = {
   durationLabel: string;
   categoryLabel?: string;
   compact?: boolean;
+  onClick?: () => void;
 };
 
 function ToolLibraryCardComponent({
@@ -30,6 +31,7 @@ function ToolLibraryCardComponent({
   durationLabel,
   categoryLabel,
   compact = false,
+  onClick,
 }: ToolLibraryCardProps) {
   const Icon = toolIcons[toolKey as keyof typeof toolIcons] ?? toolIcons.default;
   const derivedCategory = getToolByKey(toolKey)?.category ?? null;
@@ -51,6 +53,7 @@ function ToolLibraryCardComponent({
       >
         <Link
           href={href}
+          onClick={onClick}
           className={cn(
             "toolkit-focus-ring group relative z-10 flex h-full flex-col rounded-[1.85rem] focus-visible:-translate-y-0.5",
             compact ? "p-[0.85rem] sm:p-[0.95rem]" : "p-[0.95rem] sm:p-[1.05rem]",

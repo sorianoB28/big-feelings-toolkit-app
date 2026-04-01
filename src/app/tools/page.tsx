@@ -69,6 +69,7 @@ const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
 
 const TOOL_LIBRARY_ANCHOR_HREF = "/tools#tool-library";
 const TOOLKIT_QUICK_PICK_HREF = "/toolkit#quick-pick";
+const GUIDED_CHECK_IN_HREF = "/check-in/zone";
 
 function getDurationLabel(durationSeconds: number): string {
   const minutes = Math.max(1, Math.round(durationSeconds / 60));
@@ -297,6 +298,9 @@ function ToolsPageContent() {
                     <Link href={TOOL_LIBRARY_ANCHOR_HREF} className={toolkitButtonPrimaryClass}>
                       Browse the Tool Grid
                     </Link>
+                    <Link href={GUIDED_CHECK_IN_HREF} className={toolkitButtonSecondaryClass}>
+                      Start a Check-In
+                    </Link>
                     <Link href={TOOLKIT_QUICK_PICK_HREF} className={toolkitButtonSecondaryClass}>
                       Start from Quick Entry
                     </Link>
@@ -309,6 +313,10 @@ function ToolsPageContent() {
                     <p className="toolkit-body-copy mt-3">
                       The default view keeps the whole toolkit visible, while categories, search, and
                       sorting stay available as lighter supporting controls.
+                    </p>
+                    <p className="mt-3 text-sm leading-6 text-slate-600">
+                      If you want help deciding where to start, the guided check-in can point you
+                      toward a tool before you browse the full grid.
                     </p>
                   </div>
                 </motion.div>
@@ -385,6 +393,21 @@ function ToolsPageContent() {
 
               <div className="toolkit-panel mt-7 px-4 py-4 sm:px-5 sm:py-5">
                 <div className="space-y-5">
+                  <div className="rounded-[1.45rem] border border-white/72 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(244,248,255,0.9))] px-4 py-4 shadow-[0_18px_40px_-34px_rgba(79,140,255,0.18)] sm:px-5">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="max-w-2xl">
+                        <p className="toolkit-eyebrow text-primary-dark/65">Need a starting point?</p>
+                        <p className="mt-2 text-sm leading-6 text-slate-600">
+                          Try the guided check-in if you want the app to help narrow down which tool
+                          might fit this moment before you browse the full library.
+                        </p>
+                      </div>
+                      <Link href={GUIDED_CHECK_IN_HREF} className={cn(toolkitButtonSecondaryClass, "w-fit")}>
+                        Not sure where to begin? Try a check-in
+                      </Link>
+                    </div>
+                  </div>
+
                   <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_17rem_auto] xl:items-end">
                     <div>
                       <p className="toolkit-eyebrow text-primary-dark/65">Search Library</p>

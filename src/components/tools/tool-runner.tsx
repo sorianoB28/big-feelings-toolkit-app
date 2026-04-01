@@ -39,6 +39,7 @@ type ToolRunnerProps = {
   from?: string | null;
   zone?: string | null;
   intent?: string | null;
+  returnTo?: string | null;
   checkinId?: string | null;
   studentId?: string | null;
   themeKey?: string | null;
@@ -137,6 +138,7 @@ export function ToolRunner({
   from = null,
   zone = null,
   intent = null,
+  returnTo = null,
   checkinId = null,
   studentId = null,
   themeKey = null,
@@ -163,12 +165,14 @@ export function ToolRunner({
   const toolkitFinishMessage = TOOLKIT_FINISH_COPY[toolCategory];
   const fromReset = from === "reset";
   const fromCheckin = from === "checkin";
+  const fromGuidedCheckin = from === "check-in";
   const safeCheckinId = checkinId?.trim() ?? "";
   const safeStudentId = studentId?.trim() ?? "";
   const safeIntent = intent?.trim() ?? "";
   const hasCheckinContext =
     mode === "demo" && fromCheckin && safeCheckinId.length > 0 && safeStudentId.length > 0;
   const toolkitBackHref = from === "toolkit" ? "/toolkit" : "/tools";
+  const hasGuidedReturn = isToolkitMode && fromGuidedCheckin && Boolean(returnTo?.trim());
   const defaultBackHref = fromReset ? "/reset" : toolkitBackHref;
   const checkinToolsParams = new URLSearchParams({
     checkinId: safeCheckinId,
@@ -307,6 +311,8 @@ export function ToolRunner({
   const cycleTransitionDurationMs = Math.round(motionPreferences.durations.quick * 1000);
   const backButtonLabel = hasCheckinContext
     ? "Back to Check-In Tools"
+    : hasGuidedReturn
+      ? "Back to Check-In"
     : fromReset
       ? "Back to Reset"
       : from === "toolkit"
@@ -406,6 +412,11 @@ export function ToolRunner({
   function handleBack() {
     if (hasCheckinContext) {
       router.push(checkinToolsHref);
+      return;
+    }
+
+    if (hasGuidedReturn && returnTo) {
+      router.push(returnTo);
       return;
     }
 
@@ -1066,13 +1077,23 @@ export function ToolRunner({
                   >
                     Run Again
                   </MotionButton>
-                  <MotionButton
-                    type="button"
-                    onClick={() => router.push(defaultBackHref)}
-                    className={`${runnerGhostButtonClass} min-h-12 min-w-40`}
-                  >
-                    {from === "toolkit" ? "Back to Toolkit" : "Back to Tools"}
-                  </MotionButton>
+                  {hasGuidedReturn && returnTo ? (
+                    <MotionButton
+                      type="button"
+                      onClick={() => router.push(returnTo)}
+                      className={`${runnerGhostButtonClass} min-h-12 min-w-40`}
+                    >
+                      Continue to More Strategies
+                    </MotionButton>
+                  ) : (
+                    <MotionButton
+                      type="button"
+                      onClick={() => router.push(defaultBackHref)}
+                      className={`${runnerGhostButtonClass} min-h-12 min-w-40`}
+                    >
+                      {from === "toolkit" ? "Back to Toolkit" : "Back to Tools"}
+                    </MotionButton>
+                  )}
                 </div>
               </div>
             </GlassCard>

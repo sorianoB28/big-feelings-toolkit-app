@@ -106,6 +106,7 @@ const QUICK_ENTRY_RECOMMENDATION_LABELS = [
 const TOOLKIT_LIBRARY_HREF = "/tools#tool-library";
 const QUICK_PICK_SECTION_HREF = "#quick-pick";
 const FEATURED_SECTION_HREF = "#featured-tools";
+const GUIDED_CHECK_IN_HREF = "/check-in/zone";
 
 function getQuickEntryRecommendationDescription(description: string): string {
   const normalized = description.replace(/\s+/g, " ").trim();
@@ -420,13 +421,16 @@ export function ToolkitHomepage({
                   <Link href={TOOLKIT_LIBRARY_HREF} className={toolkitButtonPrimaryClass}>
                     Open Toolkit Library
                   </Link>
+                  <Link href={GUIDED_CHECK_IN_HREF} className={toolkitButtonSecondaryClass}>
+                    Start a Check-In
+                  </Link>
                   <Link href={QUICK_PICK_SECTION_HREF} className={toolkitButtonSecondaryClass}>
                     Use Quick Entry
                   </Link>
                 </div>
 
                 <p className="mt-4 text-sm font-medium text-primary-dark/80">
-                  Use this page to orient yourself, then move into the library for the full toolkit experience.
+                  Not sure where to begin? Try a guided check-in, or move straight into the library for the full toolkit experience.
                 </p>
 
                 <div className="toolkit-panel mt-8 p-5 text-left sm:p-6">
@@ -1012,6 +1016,7 @@ export function ToolkitHomepage({
                   "Open Toolkit mode without a login.",
                   "Short guided tools that feel clear, calm, and usable fast.",
                   "Breathing, grounding, movement, and support in one public library.",
+                  "Guided check-in available when you want help choosing a starting point.",
                 ].map((item) => (
                   <motion.div key={item} variants={fadeInUp} className="toolkit-panel px-4 py-4 text-sm leading-6 text-slate-600">
                     {item}
@@ -1032,6 +1037,9 @@ export function ToolkitHomepage({
               <div className="flex flex-wrap items-center gap-3">
                 <Link href={TOOLKIT_LIBRARY_HREF} className={toolkitButtonPrimaryClass}>
                   Open Toolkit Library
+                </Link>
+                <Link href={GUIDED_CHECK_IN_HREF} className={toolkitButtonSecondaryClass}>
+                  Start a Check-In
                 </Link>
                 <Link href={QUICK_PICK_SECTION_HREF} className={toolkitButtonGhostClass}>
                   Back to Quick Entry
