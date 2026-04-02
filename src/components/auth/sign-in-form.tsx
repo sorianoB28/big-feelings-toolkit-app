@@ -73,7 +73,7 @@ export function SignInForm({
       {error ? <FlashToast message={error} tone="error" /> : null}
       <div>
         <label htmlFor="email" className="mb-1 block text-sm font-medium text-dark">
-          Staff Email
+          Email
         </label>
         <input
           id="email"
@@ -83,7 +83,7 @@ export function SignInForm({
           required
           disabled={disabled || isSubmitting}
           className={inputBaseClass}
-          placeholder="name@school.org"
+          placeholder="name@example.com"
         />
       </div>
       <div>

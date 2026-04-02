@@ -21,21 +21,26 @@ function validateEmail(email: string): string {
 }
 
 function getAllowedEmailDomains(): string[] {
-  const rawValue = process.env.ALLOWED_EMAIL_DOMAINS ?? process.env.ALLOWED_EMAIL_DOMAIN ?? "";
-  const domains = rawValue
-    .split(/[,;\s]+/)
-    .map((domain) => domain.trim().toLowerCase())
-    .filter((domain) => domain.length > 0);
+  const rawValue =
+    process.env.STAFF_ALLOWED_EMAIL_DOMAINS ?? process.env.STAFF_ALLOWED_EMAIL_DOMAIN ?? "";
 
-  if (domains.length === 0) {
-    throw new Error("ALLOWED_EMAIL_DOMAINS is not configured.");
-  }
-
-  return Array.from(new Set(domains));
+  return Array.from(
+    new Set(
+      rawValue
+        .split(/[,;\s]+/)
+        .map((domain) => domain.trim().toLowerCase())
+        .filter((domain) => domain.length > 0)
+    )
+  );
 }
 
 function validateAllowedEmailDomain(email: string): void {
   const domains = getAllowedEmailDomains();
+
+  if (domains.length === 0) {
+    return;
+  }
+
   const emailDomain = email.split("@")[1]?.toLowerCase();
 
   if (!emailDomain || !domains.includes(emailDomain)) {

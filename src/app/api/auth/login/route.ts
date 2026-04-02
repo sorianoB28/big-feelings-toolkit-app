@@ -25,15 +25,7 @@ export async function POST(request: Request) {
   const result = await verifyUserCredentials(email, password);
 
   if (result.error || !result.user) {
-    return NextResponse.json(
-      {
-        error:
-          result.error === "domain_not_allowed"
-            ? "Use an approved email address."
-            : "Invalid email or password.",
-      },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
   }
 
   return NextResponse.json({

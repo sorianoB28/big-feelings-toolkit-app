@@ -40,10 +40,10 @@ export type CreateUserAccountInput = {
 };
 
 export class AuthValidationError extends Error {
-  code: "email_taken" | "invalid_email" | "weak_password" | "domain_not_allowed";
+  code: "email_taken" | "invalid_email" | "weak_password";
 
   constructor(
-    code: "email_taken" | "invalid_email" | "weak_password" | "domain_not_allowed",
+    code: "email_taken" | "invalid_email" | "weak_password",
     message: string
   ) {
     super(message);
@@ -57,26 +57,6 @@ function normalizeEmail(email: string): string {
 
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function getAllowedEmailDomains(): string[] {
-  const rawDomains = process.env.ALLOWED_EMAIL_DOMAINS ?? process.env.ALLOWED_EMAIL_DOMAIN ?? "";
-
-  return rawDomains
-    .split(/[,;\s]+/)
-    .map((domain) => domain.trim().toLowerCase())
-    .filter((domain) => domain.length > 0);
-}
-
-function isAllowedEmailDomain(email: string): boolean {
-  const allowedDomains = getAllowedEmailDomains();
-
-  if (allowedDomains.length === 0) {
-    return true;
-  }
-
-  const emailDomain = email.split("@")[1]?.toLowerCase();
-  return Boolean(emailDomain && allowedDomains.includes(emailDomain));
 }
 
 function toAuthenticatedUser(user: Pick<UserRow, "id" | "email">): AuthenticatedUser {
@@ -165,13 +145,6 @@ export async function createUserAccount(input: CreateUserAccountInput): Promise<
 
   if (!email || email.length > MAX_EMAIL_LENGTH || !isValidEmail(email)) {
     throw new AuthValidationError("invalid_email", "Enter a valid email address.");
-  }
-
-  if (!isAllowedEmailDomain(email)) {
-    throw new AuthValidationError(
-      "domain_not_allowed",
-      "Use an approved email address to create an account."
-    );
   }
 
   if (!password || password.length < MIN_PASSWORD_LENGTH || password.length > MAX_PASSWORD_LENGTH) {
@@ -279,13 +252,6 @@ export async function verifyUserCredentials(
     return {
       user: null,
       error: "invalid_credentials",
-    };
-  }
-
-  if (!isAllowedEmailDomain(normalizedEmail)) {
-    return {
-      user: null,
-      error: "domain_not_allowed",
     };
   }
 

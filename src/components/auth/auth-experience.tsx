@@ -215,8 +215,8 @@ export function AuthExperience({
         <div className="relative min-h-[36vh] flex-1 overflow-hidden px-5 pb-6 pt-5 sm:px-8 sm:pb-8 sm:pt-8 lg:min-h-screen lg:px-10 lg:py-10">
           <div className="relative h-full overflow-hidden rounded-[2rem] border border-white/45 shadow-[0_36px_90px_-44px_rgba(15,23,42,0.38)] sm:rounded-[2.4rem]">
             <Image
-              src="/images/Toolkit Only/reflectionsceneimage.jpg"
-              alt="A calm reflective school setting"
+              src="/images/signinpage.jpg"
+              alt="A calm reflective support scene"
               fill
               priority
               sizes="(min-width: 1024px) 52vw, 100vw"
