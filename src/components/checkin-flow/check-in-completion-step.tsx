@@ -2,10 +2,21 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CheckCircle2, Compass, LibraryBig, RefreshCw, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  ArrowRight,
+  BookmarkCheck,
+  CheckCircle2,
+  Compass,
+  LibraryBig,
+  RefreshCw,
+  Save,
+  Sparkles,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   CHECKIN_FEELINGS,
+  type CheckinStrategyKey,
   CHECKIN_STRATEGY_CARDS,
   CHECKIN_ZONES,
 } from "@/lib/checkin";
@@ -16,19 +27,32 @@ import {
 } from "@/components/ui/form-styles";
 import { cn } from "@/lib/utils";
 import { useGuidedCheckIn } from "./check-in-provider";
+import { useProfileSavedStrategies } from "./use-profile-saved-strategies";
 
 const feelingLabelByKey = new Map(CHECKIN_FEELINGS.map((feeling) => [feeling.key, feeling.label]));
 const strategyCardByKey = new Map(CHECKIN_STRATEGY_CARDS.map((card) => [card.key, card]));
 
+type CompletionSaveState = "idle" | "saving" | "saved" | "error";
+
 export function CheckInCompletionStep() {
   const router = useRouter();
-  const { state, reset } = useGuidedCheckIn();
+  const { state, viewer, markCompleted, markPersistedCheckin, reset } = useGuidedCheckIn();
+  const [saveState, setSaveState] = useState<CompletionSaveState>(
+    state.persistedCheckinId ? "saved" : "idle"
+  );
 
   const selectedZone = CHECKIN_ZONES.find((zone) => zone.key === state.zoneKey) ?? null;
   const selectedFeelingLabel =
     state.feelingDetailLabel ??
     (state.feelingKey ? feelingLabelByKey.get(state.feelingKey) ?? state.feelingKey : null);
   const selectedTool = state.selectedToolKey ? getToolByKey(state.selectedToolKey, "toolkit") : null;
+  const canPersistSelection =
+    viewer.isAuthenticated && Boolean(state.profileId) && Boolean(selectedZone) && Boolean(selectedFeelingLabel);
+  const { savedStrategyKeys } = useProfileSavedStrategies({
+    enabled: canPersistSelection,
+    profileId: state.profileId,
+  });
+  const completedWithoutSaving = !canPersistSelection;
   const savedStrategyCards = [];
 
   for (const strategyKey of state.selectedStrategyKeys) {
@@ -42,6 +66,127 @@ export function CheckInCompletionStep() {
       break;
     }
   }
+
+  const nextTimeSavedCards = useMemo(() => {
+    const cards = [];
+
+    for (const strategyKey of savedStrategyKeys) {
+      const card = strategyCardByKey.get(strategyKey);
+
+      if (card) {
+        cards.push(card);
+      }
+
+      if (cards.length === 4) {
+        break;
+      }
+    }
+
+    return cards;
+  }, [savedStrategyKeys]);
+
+  const selectedStrategyKeysForSave = useMemo(
+    () => [...state.selectedStrategyKeys] as CheckinStrategyKey[],
+    [state.selectedStrategyKeys]
+  );
+  const completedAt = useMemo(() => state.completedAt ?? new Date().toISOString(), [state.completedAt]);
+  const startedAt = state.startedAt ?? completedAt;
+  const durationSeconds = useMemo(() => {
+    const started = new Date(startedAt);
+    const completed = new Date(completedAt);
+
+    if (Number.isNaN(started.getTime()) || Number.isNaN(completed.getTime())) {
+      return null;
+    }
+
+    return Math.max(0, Math.round((completed.getTime() - started.getTime()) / 1000));
+  }, [completedAt, startedAt]);
+
+  useEffect(() => {
+    if (state.completedAt) {
+      return;
+    }
+
+    markCompleted(completedAt);
+  }, [completedAt, markCompleted, state.completedAt]);
+
+  useEffect(() => {
+    if (!canPersistSelection || !selectedZone || !selectedFeelingLabel) {
+      return;
+    }
+
+    if (state.persistedCheckinId) {
+      setSaveState("saved");
+
+      return;
+    }
+
+    let isCancelled = false;
+    const zoneKey = selectedZone.key;
+
+    async function persistCompletion() {
+      setSaveState("saving");
+
+      try {
+        const response = await fetch("/api/checkins", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            profileId: state.profileId,
+            zoneKey,
+            feelingLabel: selectedFeelingLabel,
+            intensity: state.intensity,
+            bodyClueKeys: state.bodyClueKeys,
+            notes: state.notes,
+            durationSeconds,
+            completed: true,
+            startedAt,
+            completedAt,
+            selectedToolKey: state.selectedToolKey,
+            selectedStrategyKeys: selectedStrategyKeysForSave,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Unable to save check-in.");
+        }
+
+        const payload = (await response.json()) as { checkinId?: string };
+
+        if (!isCancelled) {
+          markPersistedCheckin(payload.checkinId ?? "saved");
+          setSaveState("saved");
+        }
+      } catch {
+        if (!isCancelled) {
+          setSaveState("error");
+        }
+      }
+    }
+
+    void persistCompletion();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    canPersistSelection,
+    markPersistedCheckin,
+    selectedFeelingLabel,
+    selectedStrategyKeysForSave,
+    selectedZone,
+    startedAt,
+    completedAt,
+    durationSeconds,
+    state.bodyClueKeys,
+    state.intensity,
+    state.notes,
+    state.persistedCheckinId,
+    state.profileId,
+    state.selectedToolKey,
+  ]);
 
   function handleStartOver() {
     reset();
@@ -74,8 +219,7 @@ export function CheckInCompletionStep() {
             Final step
           </p>
           <p className="mt-4 text-sm leading-6 text-slate-600">
-            The completion screen gives a calm recap and points to what may help next without
-            saving any personal data.
+            The completion screen gives a calm recap and points to what may help next.
           </p>
         </aside>
       </div>
@@ -168,6 +312,66 @@ export function CheckInCompletionStep() {
               </p>
             </div>
           </div>
+
+          <div className="mt-6 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="toolkit-panel px-5 py-5 sm:px-6 sm:py-6">
+              <div className="flex items-center gap-2 text-primary-dark">
+                <Save className="h-4 w-4" />
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                  Session save
+                </p>
+              </div>
+
+              <p className="mt-4 text-sm leading-6 text-slate-600">
+                {state.profileName
+                  ? `Profile selected: ${state.profileName}`
+                  : "This check-in was completed without a saved profile."}
+              </p>
+
+              <div className="mt-4 rounded-[1.25rem] border border-white/74 bg-white/84 px-4 py-4 shadow-sm">
+                {completedWithoutSaving ? (
+                  <>
+                    <p className="text-sm font-semibold text-dark">Completed locally</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      The check-in experience still finished normally. Sign in and choose a profile if
+                      you want future sessions saved to history.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-semibold text-dark">
+                      {saveState === "saved"
+                        ? "Saved to profile history"
+                        : saveState === "saving"
+                          ? "Saving session details"
+                          : saveState === "error"
+                            ? "Completed, but not synced"
+                            : "Ready to save"}
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      {saveState === "saved"
+                        ? "Zone, feeling, body clues, tools, timing, notes, and selected strategies were saved."
+                        : saveState === "saving"
+                          ? "Writing the completed session in the background."
+                          : saveState === "error"
+                            ? "The check-in still completed, but saving failed quietly this time so your flow was not interrupted."
+                            : "This check-in will be saved as soon as the completion screen loads."}
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="toolkit-panel px-5 py-5 sm:px-6 sm:py-6">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-dark/62">
+                Session model
+              </p>
+              <p className="mt-4 text-sm leading-6 text-slate-600">
+                Completed check-ins can now store the fuller session context, including body clues,
+                tool use, strategies, optional notes, and time spent in the flow.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -217,8 +421,8 @@ export function CheckInCompletionStep() {
             Next steps
           </p>
           <p className="mt-4 text-sm leading-6 text-slate-600">
-            This check-in does not save personal data. If something here helped, the best next move
-            is usually one simple action you can actually do now.
+            If something here helped, the best next move is usually one simple action you can
+            actually do now.
           </p>
 
           <div className="mt-5 grid gap-3">
@@ -265,6 +469,57 @@ export function CheckInCompletionStep() {
             </button>
           </div>
         </aside>
+      </section>
+
+      <section className="toolkit-panel px-5 py-5 sm:px-6 sm:py-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-2 text-primary-dark">
+              <BookmarkCheck className="h-4 w-4" />
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                Your saved strategies for next time
+              </p>
+            </div>
+            <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">
+              Keep a few trusted ideas close so the next check-in can start with supports you
+              already know tend to help.
+            </p>
+          </div>
+
+          {state.profileId ? (
+            <Link
+              href={`/strategies/saved?profileId=${encodeURIComponent(state.profileId)}`}
+              className={toolkitButtonSecondaryClass}
+            >
+              View saved strategies
+            </Link>
+          ) : null}
+        </div>
+
+        {nextTimeSavedCards.length > 0 ? (
+          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {nextTimeSavedCards.map((card) => (
+              <div
+                key={card.key}
+                className="rounded-[1.3rem] border border-primary/14 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,248,255,0.95))] px-4 py-4 shadow-[0_20px_40px_-32px_rgba(79,140,255,0.24)]"
+              >
+                <span className="rounded-full border border-primary/14 bg-primary/8 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-dark">
+                  Saved by you
+                </span>
+                <p className="mt-3 text-base font-semibold text-dark">{card.title}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{card.description}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-5 rounded-[1.25rem] border border-white/72 bg-white/84 px-4 py-4 shadow-sm">
+            <p className="text-sm font-semibold text-dark">No saved strategies yet</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Save a few strategies during the check-in flow or from the strategies library and
+              they will show up here the next time.
+            </p>
+          </div>
+        )}
       </section>
     </div>
   );

@@ -1,5 +1,6 @@
 import { getToken } from "next-auth/jwt";
 import { NextResponse, type NextRequest } from "next/server";
+import { getSafeCallbackUrl } from "@/lib/auth/redirects";
 
 const PROTECTED_ROUTE_PREFIXES = [
   "/dashboard",
@@ -33,8 +34,8 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const signInUrl = new URL("/auth/signin", request.url);
-  signInUrl.searchParams.set("callbackUrl", `${pathname}${search}`);
+  const signInUrl = new URL("/auth", request.url);
+  signInUrl.searchParams.set("callbackUrl", getSafeCallbackUrl(`${pathname}${search}`));
   return NextResponse.redirect(signInUrl);
 }
 

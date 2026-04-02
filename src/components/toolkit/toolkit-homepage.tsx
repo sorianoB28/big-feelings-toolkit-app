@@ -396,7 +396,7 @@ export function ToolkitHomepage({
     <div className="app-container space-y-16 pb-20 sm:space-y-24 sm:pb-24 lg:space-y-28">
       <section className="pt-3 sm:pt-8">
         <motion.div
-          initial="initial"
+          initial={false}
           animate="animate"
           variants={staggerContainer}
           className="toolkit-surface-level-1 relative overflow-hidden px-6 py-8 sm:px-10 sm:py-12 lg:px-12 lg:py-16"

@@ -5,8 +5,6 @@ import { Suspense, useDeferredValue, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowUpDown, Search, Sparkles, X } from "lucide-react";
-import { ToolkitFooter } from "@/components/layout/toolkit-footer";
-import { ToolkitTopNav } from "@/components/layout/toolkit-top-nav";
 import { ToolkitEditorialImage } from "@/components/toolkit/toolkit-editorial-image";
 import { ToolLibraryCard } from "@/components/tools/tool-library-card";
 import { Badge } from "@/components/ui/badge";
@@ -124,14 +122,12 @@ function sortTools(tools: FlatTool[], sortBy: SortOption): FlatTool[] {
 
 function ToolsPageFallback() {
   return (
-    <div className="relative min-h-screen overflow-hidden gradient-bg">
+    <div className="relative">
       <div className="pointer-events-none absolute -left-24 top-14 h-72 w-72 rounded-full bg-primary/16 blur-3xl" />
       <div className="pointer-events-none absolute right-[-4rem] top-28 h-80 w-80 rounded-full bg-secondary/16 blur-3xl" />
       <div className="toolkit-drift pointer-events-none absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-accent/18 blur-3xl" />
 
-      <ToolkitTopNav />
-
-      <main className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-24 pt-10 sm:px-6 sm:pt-14">
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-24 pt-10 sm:px-6 sm:pt-14">
         <section className="mx-auto max-w-6xl">
           <div className="toolkit-surface-level-1 relative overflow-hidden px-6 py-8 sm:px-10 sm:py-12 lg:px-12 lg:py-14">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-[linear-gradient(180deg,rgba(79,140,255,0.16),rgba(124,108,255,0.08),transparent)]" />
@@ -147,9 +143,7 @@ function ToolsPageFallback() {
             </div>
           </div>
         </section>
-      </main>
-
-      <ToolkitFooter />
+      </div>
     </div>
   );
 }
@@ -261,14 +255,12 @@ function ToolsPageContent() {
     : "Browse the full toolkit in one unified grid first, then use search, filters, or sorting only when you want to narrow the view.";
 
   return (
-    <div className="relative min-h-screen overflow-hidden gradient-bg">
+    <div className="relative">
       <div className="pointer-events-none absolute -left-24 top-14 h-72 w-72 rounded-full bg-primary/16 blur-3xl" />
       <div className="pointer-events-none absolute right-[-4rem] top-28 h-80 w-80 rounded-full bg-secondary/16 blur-3xl" />
       <div className="toolkit-drift pointer-events-none absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-accent/18 blur-3xl" />
 
-      <ToolkitTopNav />
-
-      <main className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-24 pt-10 sm:px-6 sm:pt-14">
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-24 pt-10 sm:px-6 sm:pt-14">
         <motion.section
           initial="initial"
           animate="animate"
@@ -598,9 +590,7 @@ function ToolsPageContent() {
           </div>
         </motion.section>
 
-      </main>
-
-      <ToolkitFooter />
+      </div>
     </div>
   );
 }

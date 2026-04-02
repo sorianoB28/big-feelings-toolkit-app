@@ -21,18 +21,17 @@ export type BadgeOption = {
 };
 
 export const AVATARS = [
-  { key: "owl", label: "Owl", imageSrc: "/avatars/owl.svg" },
-  { key: "fox", label: "Fox", imageSrc: "/avatars/fox.svg" },
-  { key: "otter", label: "Otter", imageSrc: "/avatars/otter.svg" },
-  { key: "bear", label: "Bear", imageSrc: "/avatars/bear.svg" },
-  { key: "falcon", label: "Falcon", imageSrc: "/avatars/falcon.svg" },
-  { key: "panda", label: "Panda", imageSrc: "/avatars/panda.svg" },
-  { key: "tiger", label: "Tiger", imageSrc: "/avatars/tiger.svg" },
-  { key: "dolphin", label: "Dolphin", imageSrc: "/avatars/dolphin.svg" },
-  { key: "wolf", label: "Wolf", imageSrc: "/avatars/wolf.svg" },
-  { key: "koala", label: "Koala", imageSrc: "/avatars/koala.svg" },
-  { key: "turtle", label: "Turtle", imageSrc: "/avatars/turtle.svg" },
-  { key: "rocket", label: "Rocket", imageSrc: "/avatars/rocket.svg" },
+  { key: "cat", label: "Cat", imageSrc: "/avatars/cat.png" },
+  { key: "dog", label: "Dog", imageSrc: "/avatars/dog.png" },
+  { key: "duck", label: "Duck", imageSrc: "/avatars/duck.png" },
+  { key: "eagle", label: "Eagle", imageSrc: "/avatars/eagle.png" },
+  { key: "lion", label: "Lion", imageSrc: "/avatars/lion.png" },
+  { key: "monkey", label: "Monkey", imageSrc: "/avatars/monkey.png" },
+  { key: "owl", label: "Owl", imageSrc: "/avatars/owl.png" },
+  { key: "panda", label: "Panda", imageSrc: "/avatars/panda.png" },
+  { key: "penguin", label: "Penguin", imageSrc: "/avatars/penguin.png" },
+  { key: "rabbit", label: "Rabbit", imageSrc: "/avatars/rabbit.png" },
+  { key: "sloth", label: "Sloth", imageSrc: "/avatars/sloth.png" },
 ] as const satisfies ReadonlyArray<StudentAvatarOption>;
 
 export const THEMES = [

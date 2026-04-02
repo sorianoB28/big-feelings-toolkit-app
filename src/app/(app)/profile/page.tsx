@@ -50,7 +50,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
       <div className="app-card p-6 sm:p-8">
         <h2 className="tracking-tight">Change Password</h2>
         <p className="mt-2 text-sm text-gray-700">
-          Update your account password. Use at least 8 characters.
+          Update your account password. Use at least 6 characters.
         </p>
 
         {showUpdatedMessage ? (
@@ -92,7 +92,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
               type="password"
               autoComplete="new-password"
               required
-              minLength={8}
+              minLength={6}
               className={inputBaseClass}
             />
           </div>
@@ -110,7 +110,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
               type="password"
               autoComplete="new-password"
               required
-              minLength={8}
+              minLength={6}
               className={inputBaseClass}
             />
           </div>

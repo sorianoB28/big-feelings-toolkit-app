@@ -1,9 +1,10 @@
 "use client";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, Bookmark, CheckCircle2, Sparkles } from "lucide-react";
+import { ArrowRight, Bookmark, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   CHECKIN_FEELINGS,
@@ -11,6 +12,7 @@ import {
   CHECKIN_STRATEGY_CATEGORIES,
   CHECKIN_ZONES,
   getCheckinRecommendations,
+  prioritizeSavedStrategies,
   type CheckinStrategyCard,
   type CheckinStrategyCategoryKey,
 } from "@/lib/checkin";
@@ -21,6 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { CheckInImageFrame } from "./check-in-image-frame";
 import { useGuidedCheckIn } from "./check-in-provider";
+import { useProfileSavedStrategies } from "./use-profile-saved-strategies";
 
 const feelingLabelByKey = new Map(CHECKIN_FEELINGS.map((feeling) => [feeling.key, feeling.label]));
 const strategyCategoryByKey = new Map(
@@ -53,6 +56,8 @@ type StrategyCardPanelProps = {
   card: CheckinStrategyCard;
   showRelevantBadge?: boolean;
   isSaved: boolean;
+  isPending?: boolean;
+  savedBadgeLabel?: string;
   onToggleSaved: () => void;
 };
 
@@ -60,6 +65,8 @@ function StrategyCardPanel({
   card,
   showRelevantBadge = false,
   isSaved,
+  isPending = false,
+  savedBadgeLabel = "Saved by you",
   onToggleSaved,
 }: StrategyCardPanelProps) {
   const prefersReducedMotion = useReducedMotion();
@@ -80,11 +87,18 @@ function StrategyCardPanel({
           alt={card.alt}
           sizes="(min-width: 1280px) 18rem, (min-width: 768px) 30vw, 100vw"
         />
-        {showRelevantBadge ? (
-          <div className="pointer-events-none absolute left-6 top-6 z-10 rounded-full bg-primary-dark px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white shadow-sm">
-            Relevant now
-          </div>
-        ) : null}
+        <div className="pointer-events-none absolute left-6 top-6 z-10 flex flex-wrap gap-2">
+          {showRelevantBadge ? (
+            <div className="rounded-full bg-primary-dark px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white shadow-sm">
+              Relevant now
+            </div>
+          ) : null}
+          {isSaved ? (
+            <div className="rounded-full border border-primary/18 bg-white/92 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-dark shadow-sm">
+              {savedBadgeLabel}
+            </div>
+          ) : null}
+        </div>
       </div>
 
       <div className="flex flex-1 flex-col px-5 pb-5 pt-1">
@@ -117,19 +131,24 @@ function StrategyCardPanel({
           </div>
         </div>
 
-        <button
+        <motion.button
           type="button"
           onClick={onToggleSaved}
+          aria-pressed={isSaved}
+          aria-label={isSaved ? `Remove ${card.title} from saved strategies` : `Save ${card.title} to saved strategies`}
+          whileTap={prefersReducedMotion || isPending ? undefined : { scale: 0.985 }}
+          disabled={isPending}
           className={cn(
             "toolkit-focus-ring mt-5 inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition duration-[220ms] ease-out",
+            isPending && "cursor-wait opacity-80",
             isSaved
-              ? "border-primary/24 bg-primary/10 text-primary-dark hover:bg-primary/12"
+              ? "border-primary/24 bg-primary/10 text-primary-dark shadow-[0_16px_34px_-26px_rgba(79,140,255,0.34)] hover:bg-primary/12"
               : "border-white/75 bg-white/84 text-dark hover:-translate-y-0.5 hover:bg-white"
           )}
         >
-          <Bookmark className="h-4 w-4" />
-          {isSaved ? "Saved for now" : "Keep this idea"}
-        </button>
+          {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bookmark className="h-4 w-4" />}
+          {isPending ? "Updating..." : isSaved ? "Saved" : "Keep this idea"}
+        </motion.button>
       </div>
     </motion.article>
   );
@@ -137,7 +156,20 @@ function StrategyCardPanel({
 
 export function MoreStrategiesStep() {
   const router = useRouter();
-  const { state, toggleStrategy, reset } = useGuidedCheckIn();
+  const { state, toggleStrategy, reset, viewer } = useGuidedCheckIn();
+  const canPersistSavedStrategies = viewer.isAuthenticated && Boolean(state.profileId);
+  const needsProfileSelection = viewer.isAuthenticated && !state.profileId;
+  const {
+    savedStrategyKeys,
+    savedStrategyKeySet,
+    pendingStrategyKeySet,
+    isLoading: isLoadingSavedStrategies,
+    error: saveError,
+    setSavedState,
+  } = useProfileSavedStrategies({
+    enabled: canPersistSavedStrategies,
+    profileId: state.profileId,
+  });
 
   const selectedZone = CHECKIN_ZONES.find((zone) => zone.key === state.zoneKey) ?? null;
   const selectedFeelingLabel =
@@ -154,27 +186,28 @@ export function MoreStrategiesStep() {
       }),
     [state.bodyClueKeys, state.feelingDetailKey, state.feelingKey, state.zoneKey]
   );
+  const prioritizedRecommendationIds = useMemo(
+    () => prioritizeSavedStrategies(recommendation.recommendedStrategyIds, savedStrategyKeys),
+    [recommendation.recommendedStrategyIds, savedStrategyKeys]
+  );
 
-  const featuredStrategies = useMemo(
-    () => {
-      const cards: CheckinStrategyCard[] = [];
+  const featuredStrategies = useMemo(() => {
+    const cards: CheckinStrategyCard[] = [];
 
-      for (const strategyKey of recommendation.recommendedStrategyIds) {
-        const card = strategyCardByKey.get(strategyKey);
+    for (const strategyKey of prioritizedRecommendationIds) {
+      const card = strategyCardByKey.get(strategyKey);
 
-        if (card) {
-          cards.push(card);
-        }
-
-        if (cards.length === 4) {
-          break;
-        }
+      if (card) {
+        cards.push(card);
       }
 
-      return cards;
-    },
-    [recommendation.recommendedStrategyIds]
-  );
+      if (cards.length === 4) {
+        break;
+      }
+    }
+
+    return cards;
+  }, [prioritizedRecommendationIds]);
 
   const featuredStrategyKeySet = useMemo(
     () => new Set(featuredStrategies.map((card) => card.key)),
@@ -182,8 +215,8 @@ export function MoreStrategiesStep() {
   );
 
   const recommendedStrategyKeySet = useMemo(
-    () => new Set(recommendation.recommendedStrategyIds),
-    [recommendation.recommendedStrategyIds]
+    () => new Set(prioritizedRecommendationIds),
+    [prioritizedRecommendationIds]
   );
 
   const recommendationSignalLabels = useMemo(() => {
@@ -225,14 +258,13 @@ export function MoreStrategiesStep() {
   }, [featuredStrategies, recommendation.recommendedStrategyCategoryKeys]);
 
   const recommendedOrder = useMemo(
-    () =>
-      new Map(recommendation.recommendedStrategyIds.map((strategyKey, index) => [strategyKey, index])),
-    [recommendation.recommendedStrategyIds]
+    () => new Map(prioritizedRecommendationIds.map((strategyKey, index) => [strategyKey, index])),
+    [prioritizedRecommendationIds]
   );
 
   const cardsByCategory = useMemo(
-    () =>
-      new Map(
+    (): Map<CheckinStrategyCategoryKey, CheckinStrategyCard[]> =>
+      new Map<CheckinStrategyCategoryKey, CheckinStrategyCard[]>(
         orderedCategoryKeys.map((categoryKey) => [
           categoryKey,
           orderCardsForCategory(
@@ -247,13 +279,54 @@ export function MoreStrategiesStep() {
   );
 
   const visibleCategoryKeys = useMemo(
-    () => orderedCategoryKeys.filter((categoryKey) => (cardsByCategory.get(categoryKey) ?? []).length > 0),
+    () =>
+      orderedCategoryKeys.filter(
+        (categoryKey: CheckinStrategyCategoryKey) =>
+          (cardsByCategory.get(categoryKey) ?? []).length > 0
+      ),
     [cardsByCategory, orderedCategoryKeys]
   );
+
+  const savedIdeaCount = canPersistSavedStrategies
+    ? savedStrategyKeys.length
+    : state.selectedStrategyKeys.length;
 
   function handleStartOver() {
     reset();
     router.push("/check-in/zone");
+  }
+
+  async function handleToggleSaved(card: CheckinStrategyCard) {
+    const isAlreadySaved = savedStrategyKeySet.has(card.key);
+
+    if (!canPersistSavedStrategies || !state.profileId) {
+      toggleStrategy(card.key);
+      return;
+    }
+
+    if (pendingStrategyKeySet.has(card.key)) {
+      return;
+    }
+
+    const isSelectedInSession = state.selectedStrategyKeys.includes(card.key);
+    const didChangeSessionSelection =
+      (isAlreadySaved && isSelectedInSession) || (!isAlreadySaved && !isSelectedInSession);
+
+    if (didChangeSessionSelection) {
+      toggleStrategy(card.key);
+    }
+
+    try {
+      const result = await setSavedState(card.key, card.category, !isAlreadySaved);
+
+      if (!result.ok && didChangeSessionSelection) {
+        toggleStrategy(card.key);
+      }
+    } catch {
+      if (didChangeSessionSelection) {
+        toggleStrategy(card.key);
+      }
+    }
   }
 
   if (!selectedZone || !state.feelingKey) {
@@ -294,7 +367,7 @@ export function MoreStrategiesStep() {
     <div className="space-y-6">
       <section className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="toolkit-panel-strong px-6 py-6 sm:px-7 sm:py-7">
-          <Badge>Step 5</Badge>
+          <Badge>More Strategies</Badge>
           <h2 className="mt-4">More ways to help right now.</h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
             Start with one or two options that feel doable. These strategies are here to give you
@@ -320,9 +393,9 @@ export function MoreStrategiesStep() {
                 Tool used
               </span>
             ) : null}
-            {state.selectedStrategyKeys.length > 0 ? (
+            {savedIdeaCount > 0 ? (
               <span className="rounded-full border border-primary/12 bg-primary/8 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-dark shadow-sm">
-                {state.selectedStrategyKeys.length} saved
+                {savedIdeaCount} saved
               </span>
             ) : null}
           </div>
@@ -334,6 +407,33 @@ export function MoreStrategiesStep() {
           <p className="mt-4 text-sm leading-6 text-slate-600">
             Save the ideas that feel useful now so they stay easy to spot while you browse.
           </p>
+          {canPersistSavedStrategies ? (
+            <p className="mt-4 text-sm leading-6 text-slate-600">
+              Saved ideas stay attached to {state.profileName ?? "this profile"} and reload the next
+              time you come back.
+            </p>
+          ) : needsProfileSelection ? (
+            <p className="mt-4 text-sm leading-6 text-slate-600">
+              Choose a profile before saving if you want these ideas to stay attached to someone on
+              your account.
+            </p>
+          ) : (
+            <p className="mt-4 text-sm leading-6 text-slate-600">
+              Sign in and choose a profile if you want saved ideas to stick beyond this session.
+            </p>
+          )}
+          {needsProfileSelection ? (
+            <div className="mt-4">
+              <Link href="/check-in/profile" className={toolkitButtonSecondaryClass}>
+                Choose profile
+              </Link>
+            </div>
+          ) : null}
+          {saveError ? (
+            <div className="mt-4 rounded-[1.15rem] border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm leading-6 text-amber-800">
+              {saveError}
+            </div>
+          ) : null}
         </aside>
       </section>
 
@@ -386,7 +486,7 @@ export function MoreStrategiesStep() {
                       Saved ideas
                     </p>
                     <p className="mt-2 text-[1.45rem] font-semibold tracking-[-0.03em] text-dark">
-                      {state.selectedStrategyKeys.length}
+                      {savedIdeaCount}
                     </p>
                   </div>
 
@@ -403,8 +503,13 @@ export function MoreStrategiesStep() {
                   key={card.key}
                   card={card}
                   showRelevantBadge={recommendedStrategyKeySet.has(card.key)}
-                  isSaved={state.selectedStrategyKeys.includes(card.key)}
-                  onToggleSaved={() => toggleStrategy(card.key)}
+                  isSaved={savedStrategyKeySet.has(card.key)}
+                  isPending={
+                    pendingStrategyKeySet.has(card.key) ||
+                    (canPersistSavedStrategies && isLoadingSavedStrategies)
+                  }
+                  savedBadgeLabel="Your go-to"
+                  onToggleSaved={() => handleToggleSaved(card)}
                 />
               ))}
             </div>
@@ -483,7 +588,9 @@ export function MoreStrategiesStep() {
                       </span>
                     ) : null}
                   </div>
-                  <h3 className="mt-3 text-[1.5rem] tracking-[-0.03em] text-dark">{category.label}</h3>
+                  <h3 className="mt-3 text-[1.5rem] tracking-[-0.03em] text-dark">
+                    {category.label}
+                  </h3>
                 </div>
                 <p className="max-w-2xl text-sm leading-6 text-slate-600">{category.supportingLine}</p>
               </div>
@@ -493,8 +600,13 @@ export function MoreStrategiesStep() {
                   <StrategyCardPanel
                     key={card.key}
                     card={card}
-                    isSaved={state.selectedStrategyKeys.includes(card.key)}
-                    onToggleSaved={() => toggleStrategy(card.key)}
+                    isSaved={savedStrategyKeySet.has(card.key)}
+                    isPending={
+                      pendingStrategyKeySet.has(card.key) ||
+                      (canPersistSavedStrategies && isLoadingSavedStrategies)
+                    }
+                    savedBadgeLabel="Saved by you"
+                    onToggleSaved={() => handleToggleSaved(card)}
                   />
                 ))}
               </div>

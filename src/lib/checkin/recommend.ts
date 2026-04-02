@@ -579,3 +579,18 @@ export function getCheckinRecommendations(
     supportMessage: pickSupportMessage(matchedRules),
   };
 }
+
+export function prioritizeSavedStrategies(
+  strategyIds: readonly CheckinStrategyKey[],
+  savedStrategyKeys: readonly CheckinStrategyKey[]
+): CheckinStrategyKey[] {
+  if (savedStrategyKeys.length < 1 || strategyIds.length < 1) {
+    return [...strategyIds];
+  }
+
+  const savedSet = new Set(savedStrategyKeys);
+  const savedMatches = strategyIds.filter((strategyKey) => savedSet.has(strategyKey));
+  const remaining = strategyIds.filter((strategyKey) => !savedSet.has(strategyKey));
+
+  return [...savedMatches, ...remaining];
+}

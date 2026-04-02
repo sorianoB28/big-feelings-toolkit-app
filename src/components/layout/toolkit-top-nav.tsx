@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { toolkitButtonPrimaryClass } from "@/components/ui/form-styles";
+import { SignOutButton } from "@/components/auth/sign-out-button";
+import { toolkitButtonPrimaryClass, toolkitButtonSecondaryClass } from "@/components/ui/form-styles";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -14,7 +15,7 @@ const navLinks = [
   },
   {
     href: "/tools",
-    label: "Toolkit Library",
+    label: "Toolkit",
     isActive: (pathname: string) => pathname === "/tools" || pathname.startsWith("/tools/"),
   },
   {
@@ -30,8 +31,18 @@ const navLinks = [
   },
 ] as const;
 
-export function ToolkitTopNav() {
+type ToolkitTopNavProps = {
+  viewer?: {
+    isAuthenticated: boolean;
+  };
+};
+
+const navActionClassName =
+  "toolkit-focus-ring inline-flex min-h-11 items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition duration-[250ms] ease-out";
+
+export function ToolkitTopNav({ viewer }: ToolkitTopNavProps) {
   const pathname = usePathname();
+  const isAuthenticated = viewer?.isAuthenticated ?? false;
 
   return (
     <header className="relative z-20 px-4 pt-4 sm:px-6 lg:px-8">
@@ -63,7 +74,7 @@ export function ToolkitTopNav() {
           </Link>
 
           <div className="flex flex-1 flex-wrap items-center justify-end gap-3">
-            <nav className="order-3 flex w-full flex-wrap items-center gap-2 sm:order-1 sm:w-auto">
+            <nav className="order-2 flex w-full flex-wrap items-center gap-2 lg:order-1 lg:w-auto">
               {navLinks.map((link) => {
                 const active = link.isActive(pathname);
 
@@ -85,9 +96,33 @@ export function ToolkitTopNav() {
               })}
             </nav>
 
-            <Link href="/check-in" className={cn(toolkitButtonPrimaryClass, "order-2 sm:order-3")}>
-              Start a Check-In
-            </Link>
+            <div className="order-1 flex flex-wrap items-center gap-2 sm:order-2 lg:order-3">
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    className={cn(toolkitButtonSecondaryClass, "min-h-11 rounded-full px-4")}
+                  >
+                    Dashboard
+                  </Link>
+                  <SignOutButton
+                    label="Sign Out"
+                    className={cn(
+                      toolkitButtonPrimaryClass,
+                      navActionClassName,
+                      "border border-primary/14 px-4"
+                    )}
+                  />
+                </>
+              ) : (
+                <Link
+                  href="/auth"
+                  className={cn(toolkitButtonPrimaryClass, navActionClassName, "px-4")}
+                >
+                  Sign In
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </div>

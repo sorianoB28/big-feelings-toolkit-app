@@ -1,9 +1,44 @@
 import type { ToolCategory } from "@/lib/checkin-options";
+import type {
+  CheckinBodyClueCategoryKey,
+  CheckinStrategyCategoryKey,
+  CheckinStrategyKey,
+  CheckinZoneKey,
+} from "@/lib/checkin";
+
+export type CheckinBodyClue = {
+  clueKey: string;
+  category: CheckinBodyClueCategoryKey | string;
+};
+
+export type CheckinTool = {
+  toolKey: string;
+  category: ToolCategory | string;
+  createdAt?: string;
+};
+
+export type CheckinStrategy = {
+  strategyKey: CheckinStrategyKey | string;
+  category: CheckinStrategyCategoryKey | string;
+  createdAt?: string;
+};
 
 export type Checkin = {
   id: string;
+  profileId?: string;
+  zone?: CheckinZoneKey | string;
+  feeling?: string;
+  intensity?: number | null;
+  bodyClues?: CheckinBodyClue[];
+  notes?: string | null;
+  durationSeconds?: number | null;
+  completed?: boolean;
   startedAt?: string;
   endedAt?: string | null;
+  completedAt?: string | null;
+  tools?: CheckinTool[];
+  strategies?: CheckinStrategy[];
+  createdAt?: string;
   returnToClassStep: string | null;
   returnStepType?: string | null;
   returnStepText?: string | null;

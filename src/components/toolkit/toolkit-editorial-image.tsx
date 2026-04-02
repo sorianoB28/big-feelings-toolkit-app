@@ -29,10 +29,9 @@ function ToolkitEditorialImageComponent({
         "group relative isolate min-h-[18rem] overflow-hidden rounded-[2.05rem] border border-white/74 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(241,246,255,0.9))] p-3 shadow-[0_32px_72px_-42px_rgba(15,23,42,0.22)] will-change-transform sm:p-4",
         className,
       )}
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
-      whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.25 }}
-      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.45, ease: "easeOut" }}
+      initial={false}
+      animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, ease: "easeOut" }}
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.72),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(94,211,179,0.1),transparent_30%)]" />
       <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-white/78" />

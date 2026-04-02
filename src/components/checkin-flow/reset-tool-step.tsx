@@ -2,25 +2,29 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, BookmarkCheck, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ToolLibraryCard } from "@/components/tools/tool-library-card";
 import {
   CHECKIN_FEELINGS,
+  CHECKIN_STRATEGY_CARDS,
   CHECKIN_STRATEGY_CATEGORIES,
   CHECKIN_ZONES,
   getCheckinRecommendations,
+  prioritizeSavedStrategies,
 } from "@/lib/checkin";
 import {
   toolkitButtonPrimaryClass,
   toolkitButtonSecondaryClass,
 } from "@/components/ui/form-styles";
 import { useGuidedCheckIn } from "./check-in-provider";
+import { useProfileSavedStrategies } from "./use-profile-saved-strategies";
 
 const strategyCategoryLabelByKey = new Map(
   CHECKIN_STRATEGY_CATEGORIES.map((category) => [category.key, category])
 );
 const feelingLabelByKey = new Map(CHECKIN_FEELINGS.map((feeling) => [feeling.key, feeling.label]));
+const strategyCardByKey = new Map(CHECKIN_STRATEGY_CARDS.map((card) => [card.key, card]));
 
 function getDurationLabel(durationSeconds: number): string {
   const minutes = Math.max(1, Math.round(durationSeconds / 60));
@@ -28,8 +32,13 @@ function getDurationLabel(durationSeconds: number): string {
 }
 
 export function ResetToolStep() {
-  const { state, setTool } = useGuidedCheckIn();
+  const { state, setTool, viewer } = useGuidedCheckIn();
   const selectedZone = CHECKIN_ZONES.find((zone) => zone.key === state.zoneKey) ?? null;
+  const canUseSavedStrategies = viewer.isAuthenticated && Boolean(state.profileId);
+  const { savedStrategyKeys, savedStrategyKeySet } = useProfileSavedStrategies({
+    enabled: canUseSavedStrategies,
+    profileId: state.profileId,
+  });
 
   const recommendation = useMemo(
     () =>
@@ -40,6 +49,18 @@ export function ResetToolStep() {
         bodyClueKeys: state.bodyClueKeys,
       }),
     [state.bodyClueKeys, state.feelingDetailKey, state.feelingKey, state.zoneKey]
+  );
+  const prioritizedRecommendationIds = useMemo(
+    () => prioritizeSavedStrategies(recommendation.recommendedStrategyIds, savedStrategyKeys),
+    [recommendation.recommendedStrategyIds, savedStrategyKeys]
+  );
+  const prioritizedStrategyCards = useMemo(
+    () =>
+      prioritizedRecommendationIds
+        .map((strategyKey) => strategyCardByKey.get(strategyKey) ?? null)
+        .filter((card): card is Exclude<typeof card, null> => Boolean(card))
+        .slice(0, 3),
+    [prioritizedRecommendationIds]
   );
 
   if (!selectedZone || !state.feelingKey) {
@@ -91,7 +112,7 @@ export function ResetToolStep() {
     <div className="space-y-6">
       <section className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="toolkit-panel-strong px-6 py-6 sm:px-7 sm:py-7">
-          <Badge>Step 4</Badge>
+          <Badge>Reset Tool</Badge>
           <h2 className="mt-4">Here is the best digital tool to try next.</h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
             This recommendation uses your zone, feeling, and body clues to connect you to one clear
@@ -184,7 +205,10 @@ export function ResetToolStep() {
                     }
 
                     return (
-                      <div key={categoryKey} className="rounded-[1.25rem] border border-white/70 bg-white/84 px-4 py-4 shadow-sm">
+                      <div
+                        key={categoryKey}
+                        className="rounded-[1.25rem] border border-white/70 bg-white/84 px-4 py-4 shadow-sm"
+                      >
                         <p className="text-sm font-semibold text-dark">{category.label}</p>
                         <p className="mt-2 text-sm leading-6 text-slate-600">
                           {category.supportingLine}
@@ -193,6 +217,29 @@ export function ResetToolStep() {
                     );
                   })}
                 </div>
+                {prioritizedStrategyCards.length > 0 ? (
+                  <div className="mt-5 rounded-[1.25rem] border border-white/70 bg-white/84 px-4 py-4 shadow-sm">
+                    <div className="flex items-center gap-2 text-primary-dark">
+                      <BookmarkCheck className="h-4 w-4" />
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em]">
+                        {savedStrategyKeys.length > 0
+                          ? "Your go-to strategies"
+                          : "Top strategies next"}
+                      </p>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {prioritizedStrategyCards.map((card) => (
+                        <span
+                          key={card.key}
+                          className="rounded-full border border-primary/14 bg-primary/8 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-primary-dark"
+                        >
+                          {card.title}
+                          {savedStrategyKeySet.has(card.key) ? " | Saved by you" : ""}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>

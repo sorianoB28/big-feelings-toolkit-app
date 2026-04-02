@@ -41,7 +41,25 @@ export const GUIDED_CHECKIN_STEPS = [
 export type GuidedCheckInStep = (typeof GUIDED_CHECKIN_STEPS)[number];
 export type GuidedCheckInStepKey = GuidedCheckInStep["key"];
 
+export type GuidedCheckInProfileSummary = {
+  id: string;
+  name: string;
+  avatar: string | null;
+  checkinCount: number;
+};
+
+export type GuidedCheckInViewer = {
+  userId: string | null;
+  isAuthenticated: boolean;
+  availableProfiles: readonly GuidedCheckInProfileSummary[];
+};
+
 export type GuidedCheckInState = {
+  profileId: string | null;
+  profileName: string | null;
+  startedAt: string | null;
+  intensity: number | null;
+  notes: string | null;
   zoneKey: CheckinZoneKey | null;
   feelingKey: CheckinFeelingKey | null;
   feelingDetailKey: string | null;
@@ -49,9 +67,17 @@ export type GuidedCheckInState = {
   bodyClueKeys: string[];
   selectedToolKey: string | null;
   selectedStrategyKeys: CheckinStrategyKey[];
+  completed: boolean;
+  completedAt: string | null;
+  persistedCheckinId: string | null;
 };
 
 export const INITIAL_GUIDED_CHECKIN_STATE: GuidedCheckInState = {
+  profileId: null,
+  profileName: null,
+  startedAt: null,
+  intensity: null,
+  notes: null,
   zoneKey: null,
   feelingKey: null,
   feelingDetailKey: null,
@@ -59,6 +85,9 @@ export const INITIAL_GUIDED_CHECKIN_STATE: GuidedCheckInState = {
   bodyClueKeys: [],
   selectedToolKey: null,
   selectedStrategyKeys: [],
+  completed: false,
+  completedAt: null,
+  persistedCheckinId: null,
 };
 
 const GUIDED_CHECKIN_STEP_MAP = new Map<GuidedCheckInStepKey, GuidedCheckInStep>(

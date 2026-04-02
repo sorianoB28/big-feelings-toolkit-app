@@ -73,7 +73,7 @@ export function BodyClueSelectionStep() {
     <div className="space-y-6">
       <section className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="toolkit-panel-strong px-6 py-6 sm:px-7 sm:py-7">
-          <Badge>Step 3</Badge>
+          <Badge>Body Clues</Badge>
           <h2 className="mt-4">What is your body doing right now?</h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
             Body clues can help you notice what kind of support may help next. Choose any that feel

@@ -104,7 +104,7 @@ export function FeelingSelectionStep() {
     <div className="space-y-6">
       <section className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="toolkit-panel-strong px-6 py-6 sm:px-7 sm:py-7">
-          <Badge>Step 2</Badge>
+          <Badge>Feeling</Badge>
           <h2 className="mt-4">Which feeling gets closest?</h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
             Start with the bigger feeling word from your {selectedZone.label.toLowerCase()}, then

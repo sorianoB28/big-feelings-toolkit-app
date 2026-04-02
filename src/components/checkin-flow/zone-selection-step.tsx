@@ -82,7 +82,7 @@ export function ZoneSelectionStep() {
     <div className="space-y-6">
       <section className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="toolkit-panel-strong px-6 py-6 sm:px-7 sm:py-7">
-          <Badge>Step 1</Badge>
+          <Badge>Zone</Badge>
           <h2 className="mt-4">Choose the zone that feels closest right now.</h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
             Zones are a way to organize feelings and body energy. They are not about being
@@ -101,7 +101,7 @@ export function ZoneSelectionStep() {
         </aside>
       </section>
 
-      <section className="grid gap-5 md:grid-cols-2">
+      <section className="grid gap-5 md:grid-cols-2 xl:gap-6">
         {CHECKIN_ZONES.map((zone) => {
           const isSelected = state.zoneKey === zone.key;
           const theme = zoneThemeClassNames[zone.key];
@@ -130,17 +130,19 @@ export function ZoneSelectionStep() {
                 )}
               />
 
-              <div className="relative flex h-full flex-col gap-5 p-4 sm:p-5">
-                <div className="relative overflow-hidden rounded-[1.7rem] border border-white/72 bg-white/84 p-3 shadow-[0_22px_44px_-32px_rgba(15,23,42,0.22)]">
+              <div className="relative flex h-full flex-col gap-4 p-4 sm:gap-[1.125rem] sm:p-5">
+                <div className="relative overflow-hidden rounded-[1.7rem] border border-white/72 bg-white/88 p-2 shadow-[0_24px_46px_-32px_rgba(15,23,42,0.2)] sm:p-2.5">
                   <CheckInImageFrame
                     src={zone.imagePath}
                     alt={zone.alt}
                     sizes="(min-width: 1024px) 26rem, (min-width: 768px) 45vw, 100vw"
-                    aspectClassName="aspect-[16/10]"
+                    aspectClassName="aspect-[8/5]"
+                    imageClassName="object-contain p-1 sm:p-1.5"
+                    className="bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.98),rgba(245,248,255,0.94))]"
                   />
                 </div>
 
-                <div className="space-y-4 px-1 pb-1">
+                <div className="space-y-3.5 px-1 pb-1">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <span
@@ -151,7 +153,7 @@ export function ZoneSelectionStep() {
                       >
                         {zone.emotionalGrouping}
                       </span>
-                      <h3 className="mt-3 text-[1.45rem] tracking-[-0.03em] text-dark">
+                      <h3 className="mt-3 text-[1.42rem] tracking-[-0.03em] text-dark">
                         {zone.label}
                       </h3>
                     </div>

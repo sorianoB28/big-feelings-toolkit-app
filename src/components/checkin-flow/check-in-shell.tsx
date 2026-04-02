@@ -1,18 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useEffect, useMemo } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
+import { ProfileAvatar } from "@/components/profiles/profile-avatar";
 import { ToolkitPrivacyBanner } from "@/components/ui/toolkit-privacy-banner";
 import { toolkitButtonGhostClass, toolkitButtonSecondaryClass } from "@/components/ui/form-styles";
-import {
-  GUIDED_CHECKIN_STEPS,
-  getGuidedCheckInStep,
-  getGuidedCheckInStepIndex,
-  getPreviousGuidedCheckInStep,
-} from "@/lib/checkin";
+import { GUIDED_CHECKIN_STEPS } from "@/lib/checkin";
 import { cn } from "@/lib/utils";
+import { useGuidedCheckIn } from "./check-in-provider";
 
 type GuidedCheckInShellProps = {
   children: React.ReactNode;
@@ -29,18 +27,79 @@ function getStepKeyFromPathname(pathname: string): string {
   return lastSegment;
 }
 
+function ProfileIdentityPanel({
+  profileName,
+  avatarKey,
+}: {
+  profileName: string;
+  avatarKey: string | null;
+}) {
+  return (
+    <div className="inline-flex w-fit max-w-full items-center gap-3 self-start rounded-full border border-white/78 bg-white/88 px-3 py-2 shadow-[0_16px_32px_-28px_rgba(79,140,255,0.24)] backdrop-blur-md">
+      <ProfileAvatar avatarKey={avatarKey} name={profileName} size="sm" />
+
+      <div className="min-w-0">
+        <p className="truncate text-sm font-semibold tracking-[-0.02em] text-dark">
+          {profileName}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function GuidedCheckInShell({ children }: GuidedCheckInShellProps) {
+  const router = useRouter();
   const pathname = usePathname();
   const prefersReducedMotion = useReducedMotion();
-  const currentStep = getGuidedCheckInStep(getStepKeyFromPathname(pathname)) ?? GUIDED_CHECKIN_STEPS[0];
-  const currentStepIndex = getGuidedCheckInStepIndex(currentStep.key);
-  const previousStep = getPreviousGuidedCheckInStep(currentStep.key);
-  const backHref = previousStep?.href ?? "/toolkit";
-  const backLabel = previousStep ? `Back to ${previousStep.label}` : "Back to Toolkit";
+  const { hasHydrated, state, viewer } = useGuidedCheckIn();
+  const currentPathStepKey = getStepKeyFromPathname(pathname);
+  const hasSelectableProfiles = viewer.isAuthenticated && viewer.availableProfiles.length > 0;
+  const isProfileStep = currentPathStepKey === "profile";
+  const displaySteps = useMemo(() => {
+    if (!hasSelectableProfiles) {
+      return [...GUIDED_CHECKIN_STEPS];
+    }
+
+    return [
+      {
+        key: "profile",
+        label: "Profile",
+        shortLabel: "Profile",
+        description: "Choose which saved profile this check-in belongs to before you begin.",
+        href: "/check-in/profile",
+      },
+      ...GUIDED_CHECKIN_STEPS,
+    ];
+  }, [hasSelectableProfiles]);
+  const currentStep =
+    displaySteps.find((step) => step.key === currentPathStepKey) ??
+    (isProfileStep ? displaySteps[0] : GUIDED_CHECKIN_STEPS[0]);
+  const currentStepIndex = displaySteps.findIndex((step) => step.key === currentStep.key);
+  const previousStep = displaySteps[currentStepIndex - 1] ?? null;
+  const backHref = previousStep?.href ?? (viewer.isAuthenticated ? "/dashboard" : "/tools");
+  const backLabel = previousStep
+    ? `Back to ${previousStep.label}`
+    : viewer.isAuthenticated
+      ? "Back to Dashboard"
+      : "Back to Toolkit";
   const progressPercent =
-    GUIDED_CHECKIN_STEPS.length > 1
-      ? ((currentStepIndex + 1) / GUIDED_CHECKIN_STEPS.length) * 100
-      : 100;
+    displaySteps.length > 1 ? ((currentStepIndex + 1) / displaySteps.length) * 100 : 100;
+  const privacyMessage =
+    state.profileId && viewer.isAuthenticated
+      ? `This check-in can save session details for ${state.profileName ?? "this profile"} when you finish.`
+      : "This check-in can be used without saving.";
+  const activeProfile =
+    viewer.isAuthenticated && state.profileId
+      ? viewer.availableProfiles.find((profile) => profile.id === state.profileId) ?? null
+      : null;
+
+  useEffect(() => {
+    if (!hasHydrated || !hasSelectableProfiles || state.profileId || isProfileStep) {
+      return;
+    }
+
+    router.replace("/check-in/profile");
+  }, [hasHydrated, hasSelectableProfiles, isProfileStep, router, state.profileId]);
 
   return (
     <div className="app-container flex-1 pb-20 pt-3 sm:pt-8">
@@ -50,42 +109,53 @@ export function GuidedCheckInShell({ children }: GuidedCheckInShellProps) {
         <div className="pointer-events-none absolute right-0 top-8 h-44 w-44 rounded-full bg-secondary/12 blur-3xl" />
 
         <div className="relative space-y-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="space-y-3">
+          <section className="border-b border-white/65 pb-6">
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+              <div className="max-w-3xl space-y-4">
               <Link href={backHref} className={cn(toolkitButtonGhostClass, "w-fit gap-2 px-4")}>
                 <ChevronLeft className="h-4 w-4" />
                 {backLabel}
               </Link>
 
-              <div>
+                <div className="space-y-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary-dark/70">
                   Guided Check-In
                 </p>
-                <h1 className="mt-3 text-[2.2rem] sm:text-[2.8rem]">Notice what you need next.</h1>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
+                <h1 className="text-[2.2rem] sm:text-[2.8rem]">Notice what you need next.</h1>
+                <p className="max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
                   Move through one calm step at a time. This public Toolkit check-in is built to
-                  help you notice, reset, and choose a supportive next step without logging in.
+                  help you notice, reset, and choose a supportive next step. If you are signed in,
+                  you can attach the completed session to a profile before you begin.
                 </p>
+                </div>
+
+                <Link href="/tools" className={toolkitButtonSecondaryClass}>
+                  Browse Toolkit Library
+                </Link>
+
+                <ToolkitPrivacyBanner
+                  visible
+                  message={privacyMessage}
+                  className="w-full max-w-2xl bg-white/82"
+                />
+              </div>
+
+              <div className="flex items-start lg:justify-end">
+                {activeProfile ? (
+                  <ProfileIdentityPanel
+                    profileName={activeProfile.name}
+                    avatarKey={activeProfile.avatar}
+                  />
+                ) : null}
               </div>
             </div>
-
-            <div className="flex flex-col items-start gap-3 sm:items-end">
-              <ToolkitPrivacyBanner
-                visible
-                message="This check-in does not save personal data."
-                className="bg-white/82"
-              />
-              <Link href="/tools" className={toolkitButtonSecondaryClass}>
-                Browse Toolkit Library
-              </Link>
-            </div>
-          </div>
+          </section>
 
           <div className="toolkit-panel-strong overflow-hidden px-4 py-4 sm:px-5 sm:py-5">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/65 pb-4">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary-dark/68">
-                  Step {currentStepIndex + 1} of {GUIDED_CHECKIN_STEPS.length}
+                  Step {currentStepIndex + 1} of {displaySteps.length}
                 </p>
                 <p className="mt-2 text-base font-semibold text-dark">{currentStep.label}</p>
               </div>
@@ -101,8 +171,14 @@ export function GuidedCheckInShell({ children }: GuidedCheckInShellProps) {
               />
             </div>
 
-            <ol className="mt-4 grid gap-3 md:grid-cols-5" aria-label="Guided check-in progress">
-              {GUIDED_CHECKIN_STEPS.map((step, index) => {
+            <ol
+              className={cn(
+                "mt-4 grid gap-3",
+                displaySteps.length > 5 ? "md:grid-cols-3 xl:grid-cols-6" : "md:grid-cols-5"
+              )}
+              aria-label="Guided check-in progress"
+            >
+              {displaySteps.map((step, index) => {
                 const isCurrent = step.key === currentStep.key;
                 const isComplete = index < currentStepIndex;
 

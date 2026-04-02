@@ -15,7 +15,7 @@ export function SignOutButton({ className, label = "Sign out" }: SignOutButtonPr
   return (
     <MotionButton
       type="button"
-      onClick={() => signOut({ callbackUrl: "/auth/signin" })}
+      onClick={() => signOut({ callbackUrl: "/auth" })}
       className={className ?? defaultClassName}
     >
       {label}

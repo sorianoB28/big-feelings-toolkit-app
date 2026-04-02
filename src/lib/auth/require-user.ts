@@ -23,7 +23,7 @@ type RequireUserOptions = {
 export async function requireUser(options: RequireUserOptions = {}): Promise<AuthenticatedUser> {
   const session = await getServerSession(authOptions);
   const sessionUser = session?.user;
-  const redirectTo = options.redirectTo ?? "/auth/signin";
+  const redirectTo = options.redirectTo ?? "/auth";
   const onUnauthorized = options.onUnauthorized ?? "redirect";
 
   const fail = (): never => {

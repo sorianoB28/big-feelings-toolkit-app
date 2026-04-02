@@ -23,8 +23,8 @@ export async function changePasswordAction(formData: FormData): Promise<void> {
     redirect(withErrorPath("Please complete all password fields."));
   }
 
-  if (newPassword.length < 8 || newPassword.length > 128) {
-    redirect(withErrorPath("New password must be between 8 and 128 characters."));
+  if (newPassword.length < 6 || newPassword.length > 128) {
+    redirect(withErrorPath("New password must be between 6 and 128 characters."));
   }
 
   if (newPassword !== confirmPassword) {
