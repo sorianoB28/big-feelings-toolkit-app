@@ -178,7 +178,7 @@ export function FeelingSelectionStep() {
                 whileTap={prefersReducedMotion ? undefined : { scale: 0.99 }}
                 transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: "easeOut" }}
                 className={cn(
-                  "toolkit-focus-ring rounded-[1.8rem] border border-white/72 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(244,248,255,0.92))] p-5 text-left transition duration-[220ms] ease-out hover:border-primary/22 hover:shadow-[0_22px_46px_-34px_rgba(79,140,255,0.24)]",
+                  "toolkit-focus-ring flex min-h-[16rem] flex-col rounded-[1.8rem] border border-white/72 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(244,248,255,0.92))] p-5 text-left transition duration-[220ms] ease-out hover:border-primary/22 hover:shadow-[0_22px_46px_-34px_rgba(79,140,255,0.24)]",
                   isActive &&
                     "border-primary/30 bg-[linear-gradient(180deg,rgba(255,255,255,0.99),rgba(241,246,255,0.97))] ring-2 ring-primary/12 shadow-[0_24px_50px_-34px_rgba(79,140,255,0.3)]"
                 )}
@@ -203,22 +203,18 @@ export function FeelingSelectionStep() {
                   <p className="mt-4 text-sm leading-6 text-slate-600">{helperCopy}</p>
                 ) : null}
 
-                <div className={`${helperCopy ? "mt-4" : "mt-5"} flex flex-wrap gap-2`}>
-                  {previewLabels.length > 0 ? (
-                    previewLabels.map((label) => (
+                {previewLabels.length > 0 ? (
+                  <div className={`${helperCopy ? "mt-4" : "mt-5"} flex flex-wrap gap-2`}>
+                    {previewLabels.map((label) => (
                       <span
                         key={`${feeling.key}-${label}`}
                         className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-primary-dark shadow-sm"
                       >
                         {label}
                       </span>
-                    ))
-                  ) : (
-                    <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-primary-dark shadow-sm">
-                      Single-word match
-                    </span>
-                  )}
-                </div>
+                    ))}
+                  </div>
+                ) : null}
               </motion.button>
             );
           })}

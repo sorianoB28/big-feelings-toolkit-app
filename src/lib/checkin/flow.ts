@@ -67,6 +67,8 @@ export type GuidedCheckInState = {
   feelingDetailLabel: string | null;
   bodyClueKeys: string[];
   selectedToolKey: string | null;
+  selectedToolWasSkipped: boolean;
+  selectedToolProgressPercent: number | null;
   selectedStrategyKeys: CheckinStrategyKey[];
   completed: boolean;
   completedAt: string | null;
@@ -86,6 +88,8 @@ export const INITIAL_GUIDED_CHECKIN_STATE: GuidedCheckInState = {
   feelingDetailLabel: null,
   bodyClueKeys: [],
   selectedToolKey: null,
+  selectedToolWasSkipped: false,
+  selectedToolProgressPercent: null,
   selectedStrategyKeys: [],
   completed: false,
   completedAt: null,

@@ -37,6 +37,8 @@ export type CreateToolUseActionInput = {
   label: string;
   durationSeconds: number;
   helpfulRating?: number | null;
+  wasSkipped?: boolean;
+  progressPercent?: number | null;
 };
 
 export type CreateToolUseActionResult =
@@ -137,6 +139,11 @@ export async function createToolUseAction(
     const toolCategory = normalizeText(input.toolCategory);
     const label = normalizeText(input.label);
     const helpfulRating = input.helpfulRating ?? null;
+    const wasSkipped = input.wasSkipped === true;
+    const progressPercent =
+      typeof input.progressPercent === "number" && Number.isFinite(input.progressPercent)
+        ? Math.max(0, Math.min(100, Math.round(input.progressPercent)))
+        : null;
 
     if (!checkinId) {
       return {
@@ -179,6 +186,8 @@ export async function createToolUseAction(
       toolLabel: label,
       durationSeconds,
       helpfulRating,
+      wasSkipped,
+      progressPercent,
     });
 
     let awardedBadgeKeys: string[] = [];

@@ -15,6 +15,8 @@ type ToolUseRecapRow = {
   tool_key: string;
   tool_label: string;
   helpful_rating: string | null;
+  was_skipped: string | null;
+  progress_percent: string | null;
 };
 
 type ToolUseColumnRow = {
@@ -29,14 +31,23 @@ type CreateToolUseForCheckinInput = {
   toolLabel: string;
   durationSeconds: number;
   helpfulRating: number | null;
+  wasSkipped: boolean;
+  progressPercent: number | null;
 };
 
-const OPTIONAL_TOOL_USE_COLUMNS = ["duration_seconds", "helpful_rating"] as const;
+const OPTIONAL_TOOL_USE_COLUMNS = [
+  "duration_seconds",
+  "helpful_rating",
+  "was_skipped",
+  "progress_percent",
+] as const;
 
 export type CheckinToolUseRecap = {
   toolKey: string;
   toolLabel: string;
   helpfulRating: number | null;
+  wasSkipped: boolean;
+  progressPercent: number | null;
 };
 
 function clampDurationSeconds(value: number): number {
@@ -72,6 +83,35 @@ function parseHelpfulRating(value: string | null): number | null {
   return parsed;
 }
 
+function normalizeProgressPercent(value: number | null): number | null {
+  if (value === null) {
+    return null;
+  }
+
+  if (!Number.isFinite(value)) {
+    return null;
+  }
+
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function parseBooleanText(value: string | null): boolean {
+  return value === "true" || value === "t" || value === "1";
+}
+
+function parseProgressPercent(value: string | null): number | null {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isInteger(parsed)) {
+    return null;
+  }
+
+  return Math.max(0, Math.min(100, parsed));
+}
+
 export async function getLatestToolUseRecapForCheckin(
   checkinId: string
 ): Promise<CheckinToolUseRecap | null> {
@@ -80,7 +120,9 @@ export async function getLatestToolUseRecapForCheckin(
       select
         tu.tool_key::text as tool_key,
         tu.tool_label::text as tool_label,
-        to_jsonb(tu)->>'helpful_rating' as helpful_rating
+        to_jsonb(tu)->>'helpful_rating' as helpful_rating,
+        to_jsonb(tu)->>'was_skipped' as was_skipped,
+        to_jsonb(tu)->>'progress_percent' as progress_percent
       from tool_uses tu
       where tu.checkin_id = $1
       order by
@@ -104,6 +146,8 @@ export async function getLatestToolUseRecapForCheckin(
     toolKey: row.tool_key,
     toolLabel: row.tool_label,
     helpfulRating: parseHelpfulRating(row.helpful_rating),
+    wasSkipped: parseBooleanText(row.was_skipped),
+    progressPercent: parseProgressPercent(row.progress_percent),
   };
 }
 
@@ -149,6 +193,7 @@ export async function createToolUseForCheckin(input: CreateToolUseForCheckinInpu
     const availableColumns = new Set(availableColumnsResult.rows.map((row) => row.column_name));
     const durationSeconds = clampDurationSeconds(input.durationSeconds);
     const helpfulRating = normalizeHelpfulRating(input.helpfulRating);
+    const progressPercent = normalizeProgressPercent(input.progressPercent);
 
     const existingToolUseResult = await client.query<ToolUseRow>(
       `
@@ -164,7 +209,7 @@ export async function createToolUseForCheckin(input: CreateToolUseForCheckinInpu
     const existingToolUseId = existingToolUseResult.rows[0]?.id ?? null;
     if (existingToolUseId) {
       const updateAssignments: string[] = [];
-      const updateValues: Array<string | number | null> = [];
+      const updateValues: Array<string | number | boolean | null> = [];
 
       if (availableColumns.has("duration_seconds")) {
         updateValues.push(durationSeconds);
@@ -174,6 +219,16 @@ export async function createToolUseForCheckin(input: CreateToolUseForCheckinInpu
       if (availableColumns.has("helpful_rating")) {
         updateValues.push(helpfulRating);
         updateAssignments.push(`helpful_rating = $${updateValues.length}`);
+      }
+
+      if (availableColumns.has("was_skipped")) {
+        updateValues.push(input.wasSkipped);
+        updateAssignments.push(`was_skipped = $${updateValues.length}`);
+      }
+
+      if (availableColumns.has("progress_percent")) {
+        updateValues.push(progressPercent);
+        updateAssignments.push(`progress_percent = $${updateValues.length}`);
       }
 
       if (updateAssignments.length > 0) {
@@ -197,7 +252,7 @@ export async function createToolUseForCheckin(input: CreateToolUseForCheckinInpu
     }
 
     const columns = ["checkin_id", "tool_category", "tool_key", "tool_label"];
-    const values: Array<string | number | null> = [
+    const values: Array<string | number | boolean | null> = [
       input.checkinId,
       input.toolCategory,
       input.toolKey,
@@ -212,6 +267,16 @@ export async function createToolUseForCheckin(input: CreateToolUseForCheckinInpu
     if (availableColumns.has("helpful_rating")) {
       columns.push("helpful_rating");
       values.push(helpfulRating);
+    }
+
+    if (availableColumns.has("was_skipped")) {
+      columns.push("was_skipped");
+      values.push(input.wasSkipped);
+    }
+
+    if (availableColumns.has("progress_percent")) {
+      columns.push("progress_percent");
+      values.push(progressPercent);
     }
 
     const placeholders = values.map((_, index) => `$${index + 1}`).join(", ");

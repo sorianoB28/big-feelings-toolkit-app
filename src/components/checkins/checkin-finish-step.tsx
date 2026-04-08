@@ -43,6 +43,8 @@ type CheckinFinishRecap = {
   zoneLabel: string | null;
   toolLabel: string | null;
   helpfulnessRating: number | null;
+  toolWasSkipped: boolean;
+  toolProgressPercent: number | null;
 };
 
 type SuccessState = {
@@ -194,10 +196,20 @@ export function CheckinFinishStep({
         value: recap.zoneLabel ?? "Not saved yet",
       },
       {
-        label: "Tool completed",
+        label: recap.toolWasSkipped ? "Tool selected" : "Tool completed",
         value: recap.toolLabel ?? "No tool saved yet",
       },
     ];
+
+    if (recap.toolWasSkipped) {
+      items.push({
+        label: "Tool status",
+        value:
+          recap.toolProgressPercent !== null
+            ? `Skipped at ${recap.toolProgressPercent}%`
+            : "Skipped",
+      });
+    }
 
     if (helpfulnessLabel && recap.helpfulnessRating) {
       items.push({
@@ -207,7 +219,14 @@ export function CheckinFinishStep({
     }
 
     return items;
-  }, [helpfulnessLabel, recap.helpfulnessRating, recap.toolLabel, recap.zoneLabel]);
+  }, [
+    helpfulnessLabel,
+    recap.helpfulnessRating,
+    recap.toolLabel,
+    recap.toolProgressPercent,
+    recap.toolWasSkipped,
+    recap.zoneLabel,
+  ]);
 
   useEffect(() => {
     if (!successState) {

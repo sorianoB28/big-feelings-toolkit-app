@@ -15,8 +15,7 @@ import {
   type GuidedCheckInState,
   type GuidedCheckInViewer,
 } from "@/lib/checkin";
-
-const GUIDED_CHECKIN_STORAGE_KEY = "bft.guided-checkin.state";
+import { GUIDED_CHECKIN_STORAGE_KEY } from "@/lib/checkin/guided-checkin-storage";
 
 type GuidedCheckInAction =
   | { type: "set-session-key"; sessionKey: string }
@@ -85,6 +84,12 @@ function mergeGuidedCheckInState(snapshot: Partial<GuidedCheckInState>): GuidedC
         : null,
     notes: typeof snapshot.notes === "string" ? snapshot.notes : null,
     bodyClueKeys: Array.isArray(snapshot.bodyClueKeys) ? snapshot.bodyClueKeys : [],
+    selectedToolWasSkipped: snapshot.selectedToolWasSkipped === true,
+    selectedToolProgressPercent:
+      typeof snapshot.selectedToolProgressPercent === "number" &&
+      Number.isFinite(snapshot.selectedToolProgressPercent)
+        ? Math.max(0, Math.min(100, Math.round(snapshot.selectedToolProgressPercent)))
+        : null,
     selectedStrategyKeys: Array.isArray(snapshot.selectedStrategyKeys)
       ? snapshot.selectedStrategyKeys
       : [],
@@ -148,6 +153,8 @@ function guidedCheckInReducer(
         feelingDetailLabel: null,
         bodyClueKeys: [],
         selectedToolKey: null,
+        selectedToolWasSkipped: false,
+        selectedToolProgressPercent: null,
         selectedStrategyKeys: [],
       };
     case "set-feeling":
@@ -160,6 +167,8 @@ function guidedCheckInReducer(
         feelingDetailLabel: null,
         bodyClueKeys: [],
         selectedToolKey: null,
+        selectedToolWasSkipped: false,
+        selectedToolProgressPercent: null,
         selectedStrategyKeys: [],
       };
     case "set-feeling-detail":
@@ -171,6 +180,8 @@ function guidedCheckInReducer(
         feelingDetailLabel: action.detailLabel,
         bodyClueKeys: [],
         selectedToolKey: null,
+        selectedToolWasSkipped: false,
+        selectedToolProgressPercent: null,
         selectedStrategyKeys: [],
       };
     case "set-intensity":
@@ -200,6 +211,8 @@ function guidedCheckInReducer(
         sessionKey: ensureSessionKey(state),
         startedAt: ensureStartedAt(state),
         selectedToolKey: action.toolKey,
+        selectedToolWasSkipped: false,
+        selectedToolProgressPercent: null,
       };
     case "toggle-strategy":
       return {

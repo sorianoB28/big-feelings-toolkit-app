@@ -3,7 +3,7 @@
 import { memo, useCallback, useEffect, useMemo, useState, type ComponentType } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
-import { ChevronLeft, Pause, Play, RefreshCw, Sparkles } from "lucide-react";
+import { ChevronLeft, Pause, Play, RefreshCw, SkipForward, Sparkles } from "lucide-react";
 import { createToolUseAction } from "@/app/(app)/tools/actions";
 import { CalmBackground } from "@/components/animations/calm-background";
 import { ReturnScreen, type ReturnScreenResult } from "@/components/student/return-screen";
@@ -22,6 +22,7 @@ import { useClassroomSafeMode } from "@/hooks/useClassroomSafeMode";
 import { useStudentTheme } from "@/hooks/useStudentTheme";
 import { useZoneTheme } from "@/hooks/useZoneTheme";
 import type { AppMode } from "@/lib/app-mode";
+import { patchGuidedCheckInStorage } from "@/lib/checkin/guided-checkin-storage";
 import type { CheckinZoneId, ToolCategory } from "@/lib/checkin-options";
 import { getMotionPreferences } from "@/lib/motion";
 import type { ToolRuntimeProps, ToolRuntimeStatus } from "@/lib/tools/registry";
@@ -232,6 +233,8 @@ export function ToolRunner({
   const [helpfulRating, setHelpfulRating] = useState<number | null>(null);
   const [isSavingToolUse, setIsSavingToolUse] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [wasSkipped, setWasSkipped] = useState(false);
+  const [skippedProgressPercent, setSkippedProgressPercent] = useState<number | null>(null);
 
   const isComplete = !isSelfPaced && elapsedSeconds >= durationSeconds;
   const durationMs = Math.max(0, durationSeconds * 1000);
@@ -369,6 +372,7 @@ export function ToolRunner({
     return Math.min(100, Math.round((elapsedSeconds / durationSeconds) * 100));
   }, [durationSeconds, elapsedSeconds, isSelfPaced]);
   const displayedCyclePercent = hasCycleProgress ? normalizeProgressValue(cycleProgressPercent) : 0;
+  const canSkipTool = hasCheckinContext || hasGuidedReturn;
   const cycleSummaryLabel = hasCycleProgress
     ? (toolStatus?.cycleLabel ?? "Cycle progress")
     : elapsedSeconds === 0
@@ -386,11 +390,19 @@ export function ToolRunner({
   const handleToolFinish = useCallback(() => {
     setIsRunning(false);
     setIsFinished(true);
+    setWasSkipped(false);
+    setSkippedProgressPercent(null);
+    if (fromGuidedCheckin) {
+      patchGuidedCheckInStorage({
+        selectedToolWasSkipped: false,
+        selectedToolProgressPercent: null,
+      });
+    }
     setToolStatus((current) => ({
       ...(current ?? {}),
       phaseLabel: "Complete",
     }));
-  }, []);
+  }, [fromGuidedCheckin]);
 
   const runtimeProps = useMemo<ToolRuntimeProps>(
     () => ({
@@ -425,6 +437,14 @@ export function ToolRunner({
       setHelpfulRating(null);
       setSaveError(null);
       setIsSavingToolUse(false);
+      setWasSkipped(false);
+      setSkippedProgressPercent(null);
+      if (fromGuidedCheckin) {
+        patchGuidedCheckInStorage({
+          selectedToolWasSkipped: false,
+          selectedToolProgressPercent: null,
+        });
+      }
     }
 
     setIsRunning(true);
@@ -443,6 +463,34 @@ export function ToolRunner({
     setHelpfulRating(null);
     setSaveError(null);
     setIsSavingToolUse(false);
+    setWasSkipped(false);
+    setSkippedProgressPercent(null);
+    if (fromGuidedCheckin) {
+      patchGuidedCheckInStorage({
+        selectedToolWasSkipped: false,
+        selectedToolProgressPercent: null,
+      });
+    }
+  }
+
+  function handleSkip() {
+    const progressAtSkip = isSelfPaced ? null : displayedOverallProgressPercent;
+
+    setIsRunning(false);
+    setIsFinished(true);
+    setWasSkipped(true);
+    setSkippedProgressPercent(progressAtSkip);
+    setToolStatus((current) => ({
+      ...(current ?? {}),
+      phaseLabel: "Skipped",
+    }));
+
+    if (fromGuidedCheckin) {
+      patchGuidedCheckInStorage({
+        selectedToolWasSkipped: true,
+        selectedToolProgressPercent: progressAtSkip,
+      });
+    }
   }
 
   function handleToolkitRunAgain() {
@@ -500,7 +548,9 @@ export function ToolRunner({
     setSaveError(null);
 
     try {
-      const durationSecondsUsed = Math.max(1, Math.round(clampedVisualElapsedMs / 1000));
+      const durationSecondsUsed = wasSkipped
+        ? Math.max(0, Math.round(clampedVisualElapsedMs / 1000))
+        : Math.max(1, Math.round(clampedVisualElapsedMs / 1000));
       const saveResult = await createToolUseAction({
         checkinId: safeCheckinId,
         toolKey,
@@ -508,6 +558,8 @@ export function ToolRunner({
         label: toolLabel,
         durationSeconds: durationSecondsUsed,
         helpfulRating,
+        wasSkipped,
+        progressPercent: wasSkipped ? skippedProgressPercent : null,
       });
 
       if (!saveResult.ok) {
@@ -861,7 +913,13 @@ export function ToolRunner({
                 <div
                   className={cn(
                     "grid gap-3 rounded-[1.9rem] border border-white/70 bg-white/80 p-3 shadow-[0_24px_48px_-32px_rgba(15,23,42,0.28)] backdrop-blur sm:p-4",
-                    isSelfPaced ? "sm:grid-cols-1 xl:grid-cols-1" : "sm:grid-cols-2 xl:grid-cols-4",
+                    isSelfPaced
+                      ? canSkipTool
+                        ? "sm:grid-cols-2 xl:grid-cols-2"
+                        : "sm:grid-cols-1 xl:grid-cols-1"
+                      : canSkipTool
+                        ? "sm:grid-cols-2 xl:grid-cols-5"
+                        : "sm:grid-cols-2 xl:grid-cols-4",
                     isToolkitMode &&
                       "bg-white/88 border-white/80 shadow-[0_24px_48px_-34px_rgba(79,140,255,0.24)]"
                   )}
@@ -897,6 +955,16 @@ export function ToolRunner({
                       </MotionButton>
                     </>
                   ) : null}
+                  {canSkipTool ? (
+                    <MotionButton
+                      type="button"
+                      onClick={handleSkip}
+                      className={`${runnerSecondaryButtonClass} min-h-12 w-full gap-2`}
+                    >
+                      <SkipForward className="h-4 w-4" />
+                      Skip
+                    </MotionButton>
+                  ) : null}
                   <MotionButton
                     type="button"
                     onClick={handleBack}
@@ -919,8 +987,16 @@ export function ToolRunner({
                 <div className="bg-white/84 mx-auto flex h-16 w-16 items-center justify-center rounded-full text-primary-dark shadow-md">
                   <Sparkles className="h-7 w-7" />
                 </div>
-                <p className="mt-6 text-3xl font-semibold tracking-[-0.04em] text-dark">Nice job</p>
-                <p className="toolkit-body-copy mx-auto mt-4 max-w-2xl">{toolkitFinishMessage}</p>
+                <p className="mt-6 text-3xl font-semibold tracking-[-0.04em] text-dark">
+                  {wasSkipped ? "Skipped for now" : "Nice job"}
+                </p>
+                <p className="toolkit-body-copy mx-auto mt-4 max-w-2xl">
+                  {wasSkipped
+                    ? `You skipped this tool${
+                        skippedProgressPercent !== null ? ` at ${skippedProgressPercent}%` : ""
+                      }. Continue when you are ready for the next support.`
+                    : toolkitFinishMessage}
+                </p>
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
                   <MotionButton
                     type="button"
@@ -957,32 +1033,40 @@ export function ToolRunner({
             >
               <div className="gradient-accent pointer-events-none absolute inset-0 opacity-50" />
               <div className="relative">
-                <p className="text-3xl font-semibold tracking-[-0.04em] text-dark">Nice job</p>
+                <p className="text-3xl font-semibold tracking-[-0.04em] text-dark">
+                  {wasSkipped ? "Skipped for now" : "Nice job"}
+                </p>
                 <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">
-                  You finished this tool. Choose how helpful it felt, then continue the check-in.
+                  {wasSkipped
+                    ? `You skipped this tool${
+                        skippedProgressPercent !== null ? ` at ${skippedProgressPercent}%` : ""
+                      }. Continue the check-in when you are ready.`
+                    : "You finished this tool. Choose how helpful it felt, then continue the check-in."}
                 </p>
 
-                <div className="mt-6 text-left">
-                  <p className="text-sm font-semibold text-dark">
-                    How helpful was this tool? (Optional)
-                  </p>
-                  <div className="mt-3 grid grid-cols-5 gap-2">
-                    {[1, 2, 3, 4, 5].map((value) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => setHelpfulRating(value)}
-                        className={`min-h-11 rounded-2xl border text-sm font-semibold transition duration-[250ms] ease-out ${
-                          helpfulRating === value
-                            ? "bg-primary/12 border-primary text-primary-dark shadow-sm"
-                            : "bg-white/82 border-white/80 text-dark hover:-translate-y-0.5 hover:bg-white"
-                        }`}
-                      >
-                        {value}
-                      </button>
-                    ))}
+                {!wasSkipped ? (
+                  <div className="mt-6 text-left">
+                    <p className="text-sm font-semibold text-dark">
+                      How helpful was this tool? (Optional)
+                    </p>
+                    <div className="mt-3 grid grid-cols-5 gap-2">
+                      {[1, 2, 3, 4, 5].map((value) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setHelpfulRating(value)}
+                          className={`min-h-11 rounded-2xl border text-sm font-semibold transition duration-[250ms] ease-out ${
+                            helpfulRating === value
+                              ? "bg-primary/12 border-primary text-primary-dark shadow-sm"
+                              : "bg-white/82 border-white/80 text-dark hover:-translate-y-0.5 hover:bg-white"
+                          }`}
+                        >
+                          {value}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                ) : null}
 
                 <MotionButton
                   type="button"

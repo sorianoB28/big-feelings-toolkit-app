@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Bookmark, CheckCircle2, Loader2, Sparkles } from "lucide-react";
@@ -156,8 +155,7 @@ function StrategyCardPanel({
 }
 
 export function MoreStrategiesStep() {
-  const router = useRouter();
-  const { state, toggleStrategy, reset, viewer } = useGuidedCheckIn();
+  const { state, toggleStrategy, viewer } = useGuidedCheckIn();
   const canPersistSavedStrategies = viewer.isAuthenticated && Boolean(state.profileId);
   const needsProfileSelection = viewer.isAuthenticated && !state.profileId;
   const {
@@ -304,11 +302,6 @@ export function MoreStrategiesStep() {
 
     baselineSavedStrategyKeysRef.current = new Set(savedStrategyKeys);
   }, [canPersistSavedStrategies, isLoadingSavedStrategies, savedStrategyKeys]);
-
-  function handleStartOver() {
-    reset();
-    router.push("/check-in/zone");
-  }
 
   async function handleToggleSaved(card: CheckinStrategyCard) {
     const isSelectedInSession = sessionSelectedStrategyKeySet.has(card.key);
@@ -643,14 +636,6 @@ export function MoreStrategiesStep() {
             <Link href="/tools" className={toolkitButtonSecondaryClass}>
               Browse Toolkit Library
             </Link>
-            <button
-              type="button"
-              onClick={handleStartOver}
-              className={cn(toolkitButtonSecondaryClass, "gap-2")}
-            >
-              Start Another Check-In
-              <ArrowRight className="h-4 w-4" />
-            </button>
             <Link href="/check-in/complete" className={cn(toolkitButtonPrimaryClass, "gap-2")}>
               Finish Check-In
               <ArrowRight className="h-4 w-4" />

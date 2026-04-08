@@ -47,6 +47,10 @@ export function CheckInCompletionStep() {
     state.feelingDetailLabel ??
     (state.feelingKey ? feelingLabelByKey.get(state.feelingKey) ?? state.feelingKey : null);
   const selectedTool = state.selectedToolKey ? getToolByKey(state.selectedToolKey, "toolkit") : null;
+  const selectedToolProgressLabel =
+    typeof state.selectedToolProgressPercent === "number"
+      ? `${Math.max(0, Math.min(100, Math.round(state.selectedToolProgressPercent)))}%`
+      : null;
   const canPersistSelection =
     viewer.isAuthenticated && Boolean(state.profileId) && Boolean(selectedZone) && Boolean(selectedFeelingLabel);
   const { savedStrategyKeys } = useProfileSavedStrategies({
@@ -338,7 +342,11 @@ export function CheckInCompletionStep() {
                 {selectedTool?.title ?? "A Toolkit tool"}
               </p>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                You used a digital reset tool to help your body or mind shift.
+                {state.selectedToolWasSkipped
+                  ? `You skipped this tool${
+                      selectedToolProgressLabel ? ` at ${selectedToolProgressLabel}` : ""
+                    } and moved on to the next support.`
+                  : "You used a digital reset tool to help your body or mind shift."}
               </p>
             </div>
 

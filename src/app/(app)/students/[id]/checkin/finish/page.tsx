@@ -91,6 +91,8 @@ export default async function CheckinFinishPage({
         zoneLabel: zone ? toTitleCase(zone) : null,
         toolLabel: toolRecap?.toolLabel ?? null,
         helpfulnessRating: toolRecap?.helpfulRating ?? null,
+        toolWasSkipped: toolRecap?.wasSkipped ?? false,
+        toolProgressPercent: toolRecap?.progressPercent ?? null,
       }}
     />
   );
