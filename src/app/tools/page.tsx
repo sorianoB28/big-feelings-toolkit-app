@@ -291,7 +291,7 @@ function ToolsPageContent() {
 
       <div className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-24 pt-10 sm:px-6 sm:pt-14">
         <motion.section
-          initial="initial"
+          initial={false}
           animate="animate"
           variants={staggerContainer}
           className="mx-auto max-w-6xl"
@@ -381,9 +381,8 @@ function ToolsPageContent() {
 
         <motion.section
           id="tool-library"
-          initial="initial"
-          whileInView="animate"
-          viewport={{ once: true, amount: 0.2 }}
+          initial={false}
+          animate="animate"
           variants={staggerContainer}
           className="mx-auto mt-14 max-w-6xl scroll-mt-28"
         >
@@ -583,7 +582,7 @@ function ToolsPageContent() {
                 className="relative mt-7 grid gap-4 md:grid-cols-2 lg:grid-cols-3"
               >
                 {visibleTools.map((tool) => (
-                  <motion.div key={tool.id} layout variants={fadeInUp} className="h-full">
+                  <motion.div key={tool.id} layout initial={false} className="h-full">
                     <ToolLibraryCard
                       href={`/tools/${tool.toolKey}?from=toolkit`}
                       toolKey={tool.toolKey}
