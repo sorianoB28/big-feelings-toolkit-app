@@ -1,6 +1,5 @@
 "use client";
 
-import { ToolkitPrivacyBanner } from "@/components/ui/toolkit-privacy-banner";
 import { cn } from "@/lib/utils";
 
 type ToolkitFooterProps = {
@@ -22,7 +21,6 @@ export function ToolkitFooter({ className }: ToolkitFooterProps) {
                 Public tools, check-ins, and strategies for school-day reset moments.
               </p>
             </div>
-            <ToolkitPrivacyBanner variant="footer" className="justify-center" />
           </div>
         </div>
       </div>

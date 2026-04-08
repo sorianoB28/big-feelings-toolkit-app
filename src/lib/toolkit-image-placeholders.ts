@@ -17,16 +17,16 @@ export const TOOLKIT_IMAGE_PLACEHOLDERS: {
     alt: "A calm classroom reset scene with warm natural light",
   },
   featured: {
-    src: "/images/Toolkit%20Only/featuredsceneimage.jpg",
-    alt: "A grounded school-day scene that supports the featured Toolkit tools",
+    src: "/images/laura-lauch-ie1Az_w14FE-unsplash.jpg",
+    alt: "A calm learning scene that supports the featured Toolkit tools",
   },
   quickEntry: {
     src: "/images/Toolkit%20Only/reflectionsceneimage.jpg",
     alt: "A reflective school setting that supports the Toolkit quick-entry check-in",
   },
   libraryHero: {
-    src: "/images/Toolkit%20Only/toolkitlibraryimage.jpg",
-    alt: "A calm, organized learning scene introducing the Toolkit Library",
+    src: "/images/tylijura-8454037.png",
+    alt: "A calm, organized illustration introducing the Toolkit Library",
   },
   categories: {
     calm_body: {
