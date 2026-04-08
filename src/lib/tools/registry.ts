@@ -16,6 +16,8 @@ export type ToolRuntimeStatus = {
   phaseLabel?: string;
   cycleLabel?: string;
   cycleProgressPercent?: number;
+  progressPercent?: number;
+  holdFinish?: boolean;
 };
 
 export type ToolComponent = ComponentType<ToolRuntimeProps>;
@@ -28,6 +30,7 @@ export type ToolDefinition = {
   category: ToolCategory;
   description: string;
   durationSeconds: number;
+  hasProgress: boolean;
   experiences?: ToolExperience[];
   loadComponent: () => Promise<{ default: ToolComponent }>;
 };
@@ -50,6 +53,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     category: "calm_body",
     description: "Breathe in, hold, breathe out, hold - each for 4 seconds.",
     durationSeconds: 120,
+    hasProgress: true,
     loadComponent: () => import("@/components/tools/box-breathing"),
   },
   {
@@ -58,6 +62,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     category: "calm_body",
     description: "Breathe in as the circle grows, hold, then breathe out as it shrinks.",
     durationSeconds: 120,
+    hasProgress: true,
     loadComponent: () => import("@/components/tools/circle-breathing"),
   },
   {
@@ -66,6 +71,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     category: "calm_body",
     description: "Follow a smooth infinity loop to pace slow, steady inhales and exhales.",
     durationSeconds: 120,
+    hasProgress: true,
     experiences: ["toolkit"],
     loadComponent: () => import("@/components/breathing/infinity-breathing"),
   },
@@ -75,6 +81,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     category: "calm_body",
     description: "Trace the star slowly. Breathe in along one edge, breathe out along the next.",
     durationSeconds: 120,
+    hasProgress: true,
     loadComponent: () => import("@/components/tools/star-breathing"),
   },
   {
@@ -83,6 +90,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     category: "calm_body",
     description: "Follow a guided inhale-hold-exhale rhythm to lower body tension.",
     durationSeconds: 120,
+    hasProgress: true,
     loadComponent: () => import("@/components/tools/exercises/bubble-breathing-tool"),
   },
   {
@@ -91,6 +99,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     category: "release_energy",
     description: "Use short push-and-release rounds to move strong energy out safely.",
     durationSeconds: 90,
+    hasProgress: true,
     loadComponent: () => import("@/components/tools/exercises/wall-push-tool"),
   },
   {
@@ -99,14 +108,17 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     category: "release_energy",
     description: "Shake your hands/arms/legs for a short countdown, then pause.",
     durationSeconds: 60,
+    hasProgress: true,
     loadComponent: () => import("@/components/tools/shake-out"),
   },
   {
     toolKey: "stretch-flow",
     title: "Stretch Flow",
     category: "release_energy",
-    description: "Move through a short sequence of gentle stretches to loosen tension and restless energy.",
+    description:
+      "Move through a short sequence of gentle stretches to loosen tension and restless energy.",
     durationSeconds: 120,
+    hasProgress: true,
     experiences: ["toolkit"],
     loadComponent: () => import("@/components/tools/stretch-flow"),
   },
@@ -116,6 +128,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     category: "reset_mind",
     description: "Name what you sense to bring attention back to the present moment.",
     durationSeconds: 180,
+    hasProgress: true,
     loadComponent: () => import("@/components/tools/exercises/grounding-54321-tool"),
   },
   {
@@ -124,6 +137,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     category: "reset_mind",
     description: "Tap soft shapes to build a calm color canvas and refocus one choice at a time.",
     durationSeconds: 150,
+    hasProgress: true,
     experiences: ["toolkit"],
     loadComponent: () => import("@/components/tools/color-calm"),
   },
@@ -133,6 +147,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     category: "reset_mind",
     description: "Tap quick sensory prompts to reconnect with what is around you right now.",
     durationSeconds: 120,
+    hasProgress: false,
     experiences: ["toolkit"],
     loadComponent: () => import("@/components/tools/ground-and-notice"),
   },
@@ -142,6 +157,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     category: "reset_mind",
     description: "Build one short supportive phrase you can use when things feel hard or shaky.",
     durationSeconds: 90,
+    hasProgress: false,
     experiences: ["toolkit"],
     loadComponent: () => import("@/components/tools/positive-phrase-builder"),
   },
@@ -151,6 +167,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     category: "reset_mind",
     description: "Tap where you feel it in your body.",
     durationSeconds: 90,
+    hasProgress: false,
     loadComponent: () => import("@/components/tools/body-map"),
   },
   {
@@ -159,6 +176,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     category: "get_support",
     description: "Build a clear support request you can use with a trusted adult.",
     durationSeconds: 120,
+    hasProgress: false,
     loadComponent: () => import("@/components/tools/exercises/talk-to-teacher-tool"),
   },
   {
@@ -167,6 +185,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     category: "get_support",
     description: "Practice a short, clear way to ask for support.",
     durationSeconds: 90,
+    hasProgress: false,
     loadComponent: () => import("@/components/tools/exercises/ask-for-help-tool"),
   },
 ];
@@ -220,4 +239,3 @@ export function getToolsGroupedByCategory(experience?: ToolExperience): Array<{
     tools: availableTools.filter((tool) => tool.category === category),
   }));
 }
-

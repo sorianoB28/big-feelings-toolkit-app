@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { ProgressBar, normalizeProgressValue } from "@/components/ui/ProgressBar";
 import {
   BREATHING_ACTIVE_GLOW,
   BREATHING_ACTIVE_STROKE,
@@ -65,7 +66,9 @@ export default function InfinityBreathing({
       return;
     }
 
-    setVisualElapsedMs((current) => Math.max(current, Math.min(elapsedSeconds * 1000, targetDurationMs)));
+    setVisualElapsedMs((current) =>
+      Math.max(current, Math.min(elapsedSeconds * 1000, targetDurationMs))
+    );
   }, [elapsedSeconds, targetDurationMs]);
 
   useEffect(() => {
@@ -112,6 +115,7 @@ export default function InfinityBreathing({
   const cycleElapsedMs = isFinished ? CYCLE_MS : cappedElapsedMs % CYCLE_MS;
   const cycleProgress = Math.min(1, cycleElapsedMs / CYCLE_MS);
   const cycleProgressPercent = Math.min(100, Math.max(0, cycleProgress * 100));
+  const displayedCycleProgressPercent = normalizeProgressValue(cycleProgressPercent);
   const displayCycle = isFinished ? TOTAL_CYCLES : Math.min(TOTAL_CYCLES, currentCycleIndex + 1);
   const phase = getBreathPhase(cycleProgress);
 
@@ -166,17 +170,19 @@ export default function InfinityBreathing({
   return (
     <div className="space-y-5">
       <div className="text-center">
-        <p className="text-xs font-semibold uppercase tracking-wide text-primary">Infinity breathing</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+          Infinity breathing
+        </p>
         <p className="mt-1 text-lg font-semibold text-dark">{instruction}</p>
         <p className="mt-1 text-sm text-slate-600">
           Follow the glowing loop. Inhale across one side, then exhale across the other.
         </p>
       </div>
 
-      <BreathingVisualFrame showAmbientToggle={false} visualClassName="px-4 py-6 sm:px-6 sm:py-8">
+      <BreathingVisualFrame visualClassName="px-4 py-6 sm:px-6 sm:py-8">
         <div className="relative flex min-h-[19rem] items-center justify-center overflow-hidden">
-          <div className="pointer-events-none absolute left-[12%] top-[10%] h-24 w-24 rounded-full bg-secondary/12 blur-3xl" />
-          <div className="pointer-events-none absolute bottom-[12%] right-[10%] h-28 w-28 rounded-full bg-accent/16 blur-3xl" />
+          <div className="bg-secondary/12 pointer-events-none absolute left-[12%] top-[10%] h-24 w-24 rounded-full blur-3xl" />
+          <div className="bg-accent/16 pointer-events-none absolute bottom-[12%] right-[10%] h-28 w-28 rounded-full blur-3xl" />
 
           <svg
             viewBox="0 0 440 320"
@@ -252,19 +258,19 @@ export default function InfinityBreathing({
 
       <div className="rounded-[1.5rem] border border-white/65 bg-white/80 px-4 py-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-          <span>Loop {displayCycle} of {TOTAL_CYCLES}</span>
+          <span>
+            Loop {displayCycle} of {TOTAL_CYCLES}
+          </span>
           <span>{phase}</span>
         </div>
-        <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-200/85">
-          <motion.div
-            className="h-full rounded-full bg-[linear-gradient(90deg,#7C6CFF_0%,#4F8CFF_55%,#5ED3B3_100%)]"
-            animate={{ width: `${cycleProgressPercent}%` }}
-            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.22, ease: "easeOut" }}
-          />
-        </div>
+        <ProgressBar
+          value={displayedCycleProgressPercent}
+          animated={!prefersReducedMotion}
+          className="mt-3 bg-slate-200/85"
+        />
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-600">
           <span>{isRunning ? "Stay with the dot." : "Pause whenever you need to."}</span>
-          <span>{Math.round(cycleProgressPercent)}% through this loop</span>
+          <span>{displayedCycleProgressPercent}% through this loop</span>
         </div>
       </div>
     </div>

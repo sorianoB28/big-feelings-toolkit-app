@@ -48,7 +48,11 @@ const MIDDLE_OPTIONS: Record<
   im_okay: [
     { id: "hard", label: "this feels hard", text: "this feels hard" },
     { id: "minute", label: "I need a minute", text: "I need a minute" },
-    { id: "figuring_it_out", label: "I am still figuring it out", text: "I am still figuring it out" },
+    {
+      id: "figuring_it_out",
+      label: "I am still figuring it out",
+      text: "I am still figuring it out",
+    },
     { id: "not_perfect", label: "today is not perfect", text: "today is not perfect" },
   ],
   right_now: [
@@ -61,7 +65,11 @@ const MIDDLE_OPTIONS: Record<
 
 const ENDINGS = [
   { id: "enough", label: "and that is enough for now.", text: "and that is enough for now." },
-  { id: "next", label: "before I decide what comes next.", text: "before I decide what comes next." },
+  {
+    id: "next",
+    label: "before I decide what comes next.",
+    text: "before I decide what comes next.",
+  },
   { id: "steadier", label: "to help myself feel steadier.", text: "to help myself feel steadier." },
   { id: "time", label: "one step at a time.", text: "one step at a time." },
 ] as const;
@@ -71,7 +79,7 @@ type OpenerId = (typeof OPENERS)[number]["id"];
 function buildPhrase(
   openerId: OpenerId | null,
   middleText: string | null,
-  endingText: string | null,
+  endingText: string | null
 ): string {
   if (!openerId || !middleText) {
     return "Choose words that feel steady and believable for this moment.";
@@ -130,7 +138,7 @@ export default function PositivePhraseBuilder({
   const builtPhrase = buildPhrase(
     selectedOpenerId,
     selectedMiddle?.text ?? null,
-    selectedEnding?.text ?? null,
+    selectedEnding?.text ?? null
   );
 
   useEffect(() => {
@@ -163,7 +171,15 @@ export default function PositivePhraseBuilder({
       cycleLabel: isPhraseReady ? "3 of 3" : `${Math.max(1, completedCount + 1)} of 3`,
       cycleProgressPercent: progressPercent,
     });
-  }, [completedCount, currentStep, hasStartedBuilder, isFinished, isPhraseReady, onStatusChange, progressPercent]);
+  }, [
+    completedCount,
+    currentStep,
+    hasStartedBuilder,
+    isFinished,
+    isPhraseReady,
+    onStatusChange,
+    progressPercent,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -215,7 +231,8 @@ export default function PositivePhraseBuilder({
           Build one short phrase that feels steady, kind, and believable.
         </p>
         <p className="mt-1 text-sm text-slate-600">
-          Choose simple words you could actually use in a hard moment. Nothing extra, nothing cheesy.
+          Choose simple words you could actually use in a hard moment. Nothing extra, nothing
+          cheesy.
         </p>
       </div>
 
@@ -229,7 +246,7 @@ export default function PositivePhraseBuilder({
                 animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
                 exit={prefersReducedMotion ? undefined : { opacity: 0, y: -10 }}
                 transition={{ duration: 0.24, ease: "easeOut" }}
-                className="flex min-h-[24rem] flex-col justify-center rounded-[1.7rem] border border-white/70 bg-white/82 p-6 text-center shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)] sm:p-8"
+                className="bg-white/82 flex min-h-[24rem] flex-col justify-center rounded-[1.7rem] border border-white/70 p-6 text-center shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)] sm:p-8"
               >
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,rgba(79,140,255,0.14),rgba(124,108,255,0.12),rgba(94,211,179,0.14))] text-primary-dark shadow-sm">
                   <MessageSquareHeart className="h-6 w-6" />
@@ -238,7 +255,8 @@ export default function PositivePhraseBuilder({
                   Start with words that help, not pressure.
                 </h3>
                 <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600 sm:mx-auto sm:text-base">
-                  When you are ready, build one short phrase you can borrow right now. The best phrase is the one that feels calm and true.
+                  When you are ready, build one short phrase you can borrow right now. The best
+                  phrase is the one that feels calm and true.
                 </p>
 
                 <MotionButton
@@ -258,19 +276,20 @@ export default function PositivePhraseBuilder({
                 animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
                 exit={prefersReducedMotion ? undefined : { opacity: 0, y: -10 }}
                 transition={{ duration: 0.24, ease: "easeOut" }}
-                className="flex min-h-[24rem] flex-col justify-center rounded-[1.7rem] border border-white/70 bg-white/82 p-6 text-center shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)] sm:p-8"
+                className="bg-white/82 flex min-h-[24rem] flex-col justify-center rounded-[1.7rem] border border-white/70 p-6 text-center shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)] sm:p-8"
               >
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,rgba(79,140,255,0.14),rgba(94,211,179,0.16))] text-primary-dark shadow-sm">
                   <Check className="h-6 w-6" />
                 </div>
-                <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-primary-dark/72">
+                <p className="text-primary-dark/72 mt-5 text-xs font-semibold uppercase tracking-[0.18em]">
                   Your phrase
                 </p>
                 <blockquote className="mx-auto mt-4 max-w-3xl text-balance text-2xl font-semibold leading-relaxed tracking-[-0.04em] text-dark sm:text-[2rem] sm:leading-[1.45]">
                   &ldquo;{builtPhrase}&rdquo;
                 </blockquote>
                 <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
-                  Keep the part that feels useful. You do not have to force the words that do not fit.
+                  Keep the part that feels useful. You do not have to force the words that do not
+                  fit.
                 </p>
 
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
@@ -299,7 +318,7 @@ export default function PositivePhraseBuilder({
                 animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
                 exit={prefersReducedMotion ? undefined : { opacity: 0, y: -10 }}
                 transition={{ duration: 0.24, ease: "easeOut" }}
-                className="rounded-[1.7rem] border border-white/70 bg-white/82 p-5 shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)] sm:p-6"
+                className="bg-white/82 rounded-[1.7rem] border border-white/70 p-5 shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)] sm:p-6"
               >
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="flex items-start gap-4">
@@ -307,7 +326,7 @@ export default function PositivePhraseBuilder({
                       <MessageSquareHeart className="h-6 w-6" />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-dark/72">
+                      <p className="text-primary-dark/72 text-xs font-semibold uppercase tracking-[0.18em]">
                         Step {currentStep} of 3
                       </p>
                       <h3 className="mt-2 text-[1.55rem] font-semibold tracking-[-0.04em] text-dark">
@@ -361,7 +380,8 @@ export default function PositivePhraseBuilder({
                           helper: "Tap to finish the phrase in a calm, supportive way.",
                           onSelect: () => handleSelectEnding(option.id),
                           selected: selectedEndingId === option.id,
-                        }))).map((option) => (
+                        }))
+                  ).map((option) => (
                     <motion.button
                       key={option.key}
                       type="button"
@@ -372,9 +392,9 @@ export default function PositivePhraseBuilder({
                       disabled={!isRunning || isFinished}
                       className={`toolkit-focus-ring min-h-[6rem] rounded-[1.35rem] border px-4 py-4 text-left shadow-[0_18px_36px_-30px_rgba(15,23,42,0.14)] transition duration-[250ms] ease-out ${
                         option.selected
-                          ? "border-primary/40 bg-primary/8"
-                          : "border-white/80 bg-white/88 hover:border-primary/35 hover:bg-primary/5"
-                      } disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-white/88`}
+                          ? "bg-primary/8 border-primary/40"
+                          : "bg-white/88 border-white/80 hover:border-primary/35 hover:bg-primary/5"
+                      } disabled:hover:bg-white/88 disabled:cursor-not-allowed disabled:opacity-60`}
                     >
                       <span className="block text-sm font-semibold text-dark">{option.title}</span>
                       <span className="mt-2 block text-sm leading-6 text-slate-600">
@@ -389,23 +409,9 @@ export default function PositivePhraseBuilder({
         </div>
 
         <div className="flex flex-col gap-4">
-          <div className="rounded-[1.7rem] border border-white/70 bg-white/82 p-4 shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)]">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-dark">Phrase progress</p>
-              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary-dark">
-                {progressPercent}%
-              </span>
-            </div>
-            <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-200/80">
-              <motion.div
-                className="h-full rounded-full bg-[linear-gradient(90deg,#7C6CFF_0%,#4F8CFF_58%,#5ED3B3_100%)]"
-                animate={{ width: `${progressPercent}%` }}
-                transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.22, ease: "easeOut" }}
-              />
-            </div>
-
-            <div className="mt-4 rounded-[1.35rem] border border-white/70 bg-[linear-gradient(135deg,rgba(79,140,255,0.08),rgba(124,108,255,0.06),rgba(94,211,179,0.06))] px-4 py-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary-dark/72">
+          <div className="bg-white/82 rounded-[1.7rem] border border-white/70 p-4 shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)]">
+            <div className="rounded-[1.35rem] border border-white/70 bg-[linear-gradient(135deg,rgba(79,140,255,0.08),rgba(124,108,255,0.06),rgba(94,211,179,0.06))] px-4 py-4">
+              <p className="text-primary-dark/72 text-xs font-semibold uppercase tracking-[0.16em]">
                 Live preview
               </p>
               <p className="mt-3 text-base font-semibold leading-7 text-dark">{builtPhrase}</p>
@@ -441,7 +447,7 @@ export default function PositivePhraseBuilder({
                       <p className="mt-1 text-sm font-semibold text-dark">{item.label}</p>
                     </div>
                     {item.complete ? (
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/12 text-primary-dark">
+                      <span className="bg-primary/12 flex h-7 w-7 items-center justify-center rounded-full text-primary-dark">
                         <Check className="h-4 w-4" />
                       </span>
                     ) : (

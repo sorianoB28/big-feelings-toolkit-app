@@ -5,10 +5,7 @@ import dynamic from "next/dynamic";
 import { useMemo, type ComponentType } from "react";
 import { CalmBackground } from "@/components/animations/calm-background";
 import { ToolRunner } from "@/components/tools/tool-runner";
-import {
-  buttonSecondaryClass,
-  toolkitButtonGhostClass,
-} from "@/components/ui/form-styles";
+import { buttonSecondaryClass, toolkitButtonGhostClass } from "@/components/ui/form-styles";
 import { useAppMode, type AppMode } from "@/lib/app-mode";
 import { getToolByKey, type ToolRuntimeProps } from "@/lib/tools/registry";
 
@@ -63,7 +60,9 @@ export function ToolPageClient({
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary-dark/80">
                 Preparing Tool
               </p>
-              <h1 className="mt-4 text-3xl tracking-[-0.04em] text-dark">Loading your calm space</h1>
+              <h1 className="mt-4 text-3xl tracking-[-0.04em] text-dark">
+                Loading your calm space
+              </h1>
               <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
                 Setting up the tool so you can jump straight in.
               </p>
@@ -109,6 +108,7 @@ export function ToolPageClient({
       title={tool.title}
       description={tool.description}
       durationSeconds={tool.durationSeconds}
+      hasProgress={tool.hasProgress}
       mode={runnerMode}
       ToolComponent={ToolComponent}
       from={from}

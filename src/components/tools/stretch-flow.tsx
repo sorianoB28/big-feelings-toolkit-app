@@ -12,6 +12,7 @@ import {
   Wind,
   type LucideIcon,
 } from "lucide-react";
+import { ProgressBar, normalizeProgressValue } from "@/components/ui/ProgressBar";
 import type { ToolRuntimeProps } from "@/lib/tools/registry";
 
 const STRETCH_STEPS: Array<{
@@ -105,7 +106,9 @@ export default function StretchFlow({
       return;
     }
 
-    setVisualElapsedMs((current) => Math.max(current, Math.min(elapsedSeconds * 1000, targetDurationMs)));
+    setVisualElapsedMs((current) =>
+      Math.max(current, Math.min(elapsedSeconds * 1000, targetDurationMs))
+    );
   }, [elapsedSeconds, targetDurationMs]);
 
   useEffect(() => {
@@ -152,8 +155,10 @@ export default function StretchFlow({
   const completedSteps = isFinished ? STRETCH_STEPS.length : currentStepIndex;
   const overallSequencePercent = Math.min(
     100,
-    Math.max(0, ((completedSteps + stepElapsedMs / stepDurationMs) / STRETCH_STEPS.length) * 100),
+    Math.max(0, ((completedSteps + stepElapsedMs / stepDurationMs) / STRETCH_STEPS.length) * 100)
   );
+  const displayedStepProgressPercent = normalizeProgressValue(stepProgressPercent);
+  const displayedOverallSequencePercent = normalizeProgressValue(overallSequencePercent);
 
   useEffect(() => {
     onStatusChange?.({
@@ -171,7 +176,7 @@ export default function StretchFlow({
 
   const currentAnimation = useMemo(
     () => getStepAnimation(currentStep.id, isRunning && !isFinished),
-    [currentStep.id, isFinished, isRunning],
+    [currentStep.id, isFinished, isRunning]
   );
 
   return (
@@ -191,10 +196,10 @@ export default function StretchFlow({
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <div className="rounded-[2rem] border border-white/70 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.96),rgba(234,242,255,0.84)_48%,rgba(247,250,252,0.76))] p-4 shadow-[0_24px_54px_-34px_rgba(79,140,255,0.24)] sm:p-6">
           <div className="grid gap-4 lg:grid-cols-[0.92fr_1.08fr]">
-            <div className="rounded-[1.7rem] border border-white/75 bg-white/84 p-5 shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)]">
+            <div className="bg-white/84 rounded-[1.7rem] border border-white/75 p-5 shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)]">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-dark/72">
+                  <p className="text-primary-dark/72 text-xs font-semibold uppercase tracking-[0.18em]">
                     Current step
                   </p>
                   <h3 className="mt-2 text-[1.6rem] font-semibold tracking-[-0.04em] text-dark">
@@ -223,21 +228,19 @@ export default function StretchFlow({
               </div>
             </div>
 
-            <div className="rounded-[1.7rem] border border-white/75 bg-white/84 p-5 shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)]">
+            <div className="bg-white/84 rounded-[1.7rem] border border-white/75 p-5 shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)]">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-dark">Step pacing</p>
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                  {Math.round(stepProgressPercent)}%
+                  {displayedStepProgressPercent}%
                 </span>
               </div>
 
-              <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-200/80">
-                <motion.div
-                  className="h-full rounded-full bg-[linear-gradient(90deg,#7C6CFF_0%,#4F8CFF_58%,#5ED3B3_100%)]"
-                  animate={{ width: `${stepProgressPercent}%` }}
-                  transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.22, ease: "easeOut" }}
-                />
-              </div>
+              <ProgressBar
+                value={displayedStepProgressPercent}
+                animated={!prefersReducedMotion}
+                className="mt-3"
+              />
 
               <div className="mt-5 rounded-[1.35rem] border border-white/70 bg-[linear-gradient(135deg,rgba(79,140,255,0.07),rgba(124,108,255,0.05),rgba(255,255,255,0.92))] px-4 py-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary-dark/70">
@@ -258,7 +261,7 @@ export default function StretchFlow({
                 )}
               </div>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-5 lg:grid-cols-1 xl:grid-cols-5">
+              <div className="mt-5 grid grid-cols-2 justify-center gap-3 sm:grid-cols-3 lg:grid-cols-5">
                 {STRETCH_STEPS.map((step, index) => {
                   const isComplete = isFinished || index < currentStepIndex;
                   const isCurrent = !isFinished && index === currentStepIndex;
@@ -266,18 +269,34 @@ export default function StretchFlow({
                   return (
                     <div
                       key={step.id}
-                      className={`rounded-[1.2rem] border px-3 py-3 text-center transition duration-[220ms] ease-out ${
+                      className={`mx-auto flex w-full max-w-[5.25rem] flex-col items-center rounded-[1.2rem] border px-3 py-3 text-center transition duration-[220ms] ease-out ${
                         isCurrent
-                          ? "border-primary/35 bg-primary/8 shadow-[0_18px_30px_-28px_rgba(79,140,255,0.36)]"
+                          ? "border-primary/30 bg-[linear-gradient(145deg,rgba(96,165,250,0.18),rgba(124,108,255,0.14),rgba(255,255,255,0.92))] shadow-[0_18px_30px_-28px_rgba(79,140,255,0.36)]"
                           : isComplete
-                            ? "border-white/70 bg-white/90"
-                            : "border-white/70 bg-white/72"
+                            ? "border-slate-200 bg-slate-100/90"
+                            : "border-slate-200 bg-slate-100/70"
                       }`}
                     >
-                      <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-white/88 text-primary-dark shadow-sm">
-                        {isComplete ? <Check className="h-4 w-4" /> : <step.Icon className="h-4 w-4" />}
+                      <div
+                        className={`mx-auto flex h-9 w-9 items-center justify-center rounded-full shadow-sm ${
+                          isCurrent
+                            ? "bg-[linear-gradient(145deg,rgba(96,165,250,0.28),rgba(124,108,255,0.2))] text-primary-dark"
+                            : isComplete
+                              ? "bg-white text-slate-600"
+                              : "bg-white/92 text-slate-400"
+                        }`}
+                      >
+                        {isComplete ? (
+                          <Check className="h-4 w-4" />
+                        ) : (
+                          <step.Icon className="h-4 w-4" />
+                        )}
                       </div>
-                      <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                      <p
+                        className={`mt-2 text-[11px] font-semibold uppercase tracking-[0.12em] ${
+                          isCurrent ? "text-primary-dark" : "text-slate-500"
+                        }`}
+                      >
                         {index + 1}
                       </p>
                     </div>
@@ -289,26 +308,24 @@ export default function StretchFlow({
         </div>
 
         <div className="flex flex-col gap-4">
-          <div className="rounded-[1.7rem] border border-white/70 bg-white/82 p-4 shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)]">
+          <div className="bg-white/82 rounded-[1.7rem] border border-white/70 p-4 shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)]">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-dark">Sequence progress</p>
               <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary-dark">
-                {Math.round(overallSequencePercent)}%
+                {displayedOverallSequencePercent}%
               </span>
             </div>
-            <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-200/80">
-              <motion.div
-                className="h-full rounded-full bg-[linear-gradient(90deg,#7C6CFF_0%,#4F8CFF_58%,#5ED3B3_100%)]"
-                animate={{ width: `${overallSequencePercent}%` }}
-                transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.22, ease: "easeOut" }}
-              />
-            </div>
+            <ProgressBar
+              value={displayedOverallSequencePercent}
+              animated={!prefersReducedMotion}
+              className="mt-3"
+            />
             <p className="mt-3 text-sm leading-6 text-slate-600">
               Five gentle prompts move you from tension into a calmer breath.
             </p>
           </div>
 
-          <div className="rounded-[1.7rem] border border-white/70 bg-white/82 p-4 shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)]">
+          <div className="bg-white/82 rounded-[1.7rem] border border-white/70 p-4 shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)]">
             <div className="flex items-start gap-3">
               <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-[linear-gradient(135deg,rgba(79,140,255,0.14),rgba(124,108,255,0.12),rgba(94,211,179,0.16))] text-primary-dark shadow-sm">
                 <Sparkles className="h-[18px] w-[18px]" />
@@ -316,7 +333,8 @@ export default function StretchFlow({
               <div>
                 <p className="text-sm font-semibold text-dark">Gentle pacing</p>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  This is meant to feel steady and supportive, not intense. Small movement is enough.
+                  This is meant to feel steady and supportive, not intense. Small movement is
+                  enough.
                 </p>
               </div>
             </div>

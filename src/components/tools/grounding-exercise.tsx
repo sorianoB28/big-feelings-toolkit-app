@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import { cn } from "@/lib/utils";
 
 type GroundingKey = "see" | "feel" | "hear" | "smell" | "taste";
@@ -83,10 +84,7 @@ function getFirstIncompleteStepIndex(result: GroundingResult): number {
   return index === -1 ? STEPS.length - 1 : index;
 }
 
-export default function GroundingExercise({
-  className,
-  onFinish,
-}: GroundingExerciseProps) {
+export default function GroundingExercise({ className, onFinish }: GroundingExerciseProps) {
   const prefersReducedMotion = useReducedMotion();
   const [started, setStarted] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
@@ -244,8 +242,8 @@ export default function GroundingExercise({
         className
       )}
     >
-      <div className="pointer-events-none absolute -left-20 -top-20 h-56 w-56 rounded-full bg-primary/8 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 -right-20 h-60 w-60 rounded-full bg-gray-500/7 blur-3xl" />
+      <div className="bg-primary/8 pointer-events-none absolute -left-20 -top-20 h-56 w-56 rounded-full blur-3xl" />
+      <div className="bg-gray-500/7 pointer-events-none absolute -bottom-24 -right-20 h-60 w-60 rounded-full blur-3xl" />
 
       <div className="relative z-10 space-y-6">
         <header className="space-y-2">
@@ -253,15 +251,16 @@ export default function GroundingExercise({
           <p className="text-sm text-gray-700">Notice what is around you, one step at a time.</p>
           <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-gray-600">
             <span>Overall progress</span>
-            <span>{totalCollected}/{TOTAL_REQUIRED}</span>
+            <span>
+              {totalCollected}/{TOTAL_REQUIRED}
+            </span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-gray-200">
-            <motion.div
-              className="h-full rounded-full bg-primary"
-              animate={{ width: `${overallProgress}%` }}
-              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.25, ease: "easeOut" }}
-            />
-          </div>
+          <ProgressBar
+            value={overallProgress}
+            animated={!prefersReducedMotion}
+            className="h-2 bg-gray-200"
+            fillClassName="bg-primary"
+          />
         </header>
 
         {!showSummary ? (
@@ -332,7 +331,9 @@ export default function GroundingExercise({
                               animate={{ opacity: 1, y: 0 }}
                               exit={prefersReducedMotion ? undefined : { opacity: 0 }}
                               transition={
-                                prefersReducedMotion ? { duration: 0 } : { duration: 0.22, ease: "easeOut" }
+                                prefersReducedMotion
+                                  ? { duration: 0 }
+                                  : { duration: 0.22, ease: "easeOut" }
                               }
                               className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700"
                             >
@@ -382,7 +383,9 @@ export default function GroundingExercise({
                             animate={{ opacity: 1, scale: 1 }}
                             exit={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.92 }}
                             transition={
-                              prefersReducedMotion ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }
+                              prefersReducedMotion
+                                ? { duration: 0 }
+                                : { duration: 0.2, ease: "easeOut" }
                             }
                             className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary-dark"
                           >
@@ -408,7 +411,9 @@ export default function GroundingExercise({
           <motion.div
             initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.25, ease: "easeOut" }}
+            transition={
+              prefersReducedMotion ? { duration: 0 } : { duration: 0.25, ease: "easeOut" }
+            }
             className="rounded-xl border border-border-soft bg-white/90 p-5 shadow-sm sm:p-6"
           >
             <h3 className="text-lg font-semibold text-dark">Summary</h3>
@@ -416,7 +421,10 @@ export default function GroundingExercise({
 
             <div className="mt-4 space-y-3">
               {STEPS.map((step) => (
-                <div key={`summary-${step.key}`} className="rounded-lg border border-gray-200 bg-gray-50/60 p-3">
+                <div
+                  key={`summary-${step.key}`}
+                  className="rounded-lg border border-gray-200 bg-gray-50/60 p-3"
+                >
                   <p className="text-sm font-semibold text-dark">{step.title}</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {finalResult[step.key].length > 0 ? (

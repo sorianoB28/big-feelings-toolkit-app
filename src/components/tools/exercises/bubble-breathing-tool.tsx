@@ -51,11 +51,20 @@ function getPhase(msIntoCycle: number): { label: string; instruction: string; sc
   };
 }
 
+function clampProgress(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(100, value));
+}
+
 export default function BubbleBreathingTool({
   isRunning,
   isFinished,
   elapsedSeconds,
   durationSeconds,
+  onFinish,
   onStatusChange,
 }: ToolRuntimeProps) {
   const targetDurationMs = Math.max(0, durationSeconds) * 1000;
@@ -74,7 +83,9 @@ export default function BubbleBreathingTool({
       return;
     }
 
-    setVisualElapsedMs((current) => Math.max(current, Math.min(elapsedSeconds * 1000, targetDurationMs)));
+    setVisualElapsedMs((current) =>
+      Math.max(current, Math.min(elapsedSeconds * 1000, targetDurationMs))
+    );
   }, [elapsedSeconds, targetDurationMs]);
 
   useEffect(() => {
@@ -107,26 +118,48 @@ export default function BubbleBreathingTool({
     };
   }, [isRunning, targetDurationMs]);
 
-  const cappedElapsedMs = Math.min(visualElapsedMs, targetDurationMs);
-  const msIntoCycle = cappedElapsedMs % CYCLE_MS;
-  const phase = getPhase(msIntoCycle);
-  const completedCycles = Math.floor(cappedElapsedMs / CYCLE_MS);
-  const cycleProgressPercent = Math.min(100, (msIntoCycle / CYCLE_MS) * 100);
-  const totalCycles = Math.max(1, Math.floor(durationSeconds / CYCLE_SECONDS));
-  const heading = isRunning ? phase.label : cappedElapsedMs === 0 ? "Ready" : "Paused";
+  const elapsedTimeMs = Math.min(visualElapsedMs, targetDurationMs);
+  const totalTimeMs = Math.max(1, targetDurationMs);
+  const cycleDurationMs = CYCLE_MS;
+  const currentCycleElapsedMs =
+    elapsedTimeMs >= targetDurationMs ? cycleDurationMs : elapsedTimeMs % cycleDurationMs;
+  const overallProgressPercent = clampProgress((elapsedTimeMs / totalTimeMs) * 100);
+  const cycleProgressPercent = clampProgress((currentCycleElapsedMs / cycleDurationMs) * 100);
+  const phase = getPhase(currentCycleElapsedMs);
+  const completedCycles = Math.floor(elapsedTimeMs / CYCLE_MS);
+  const totalCycles = Math.max(1, Math.ceil(totalTimeMs / CYCLE_MS));
+  const heading = isRunning ? phase.label : elapsedTimeMs === 0 ? "Ready" : "Paused";
   const instruction = isRunning
     ? phase.instruction
-    : cappedElapsedMs === 0
+    : elapsedTimeMs === 0
       ? "Press start and match your breathing to the bubble."
       : "Paused";
+
+  useEffect(() => {
+    if (isFinished) {
+      return;
+    }
+
+    if (elapsedTimeMs >= targetDurationMs) {
+      onFinish();
+    }
+  }, [elapsedTimeMs, isFinished, onFinish, targetDurationMs]);
 
   useEffect(() => {
     onStatusChange?.({
       phaseLabel: phase.label,
       cycleLabel: `${Math.min(totalCycles, completedCycles + 1)} of ${totalCycles}`,
       cycleProgressPercent,
+      progressPercent: overallProgressPercent,
     });
-  }, [completedCycles, cycleProgressPercent, onStatusChange, phase.label, totalCycles]);
+  }, [
+    completedCycles,
+    cycleProgressPercent,
+    onStatusChange,
+    overallProgressPercent,
+    phase.label,
+    totalCycles,
+  ]);
 
   useEffect(() => {
     if (!isFinished) {
@@ -137,6 +170,7 @@ export default function BubbleBreathingTool({
       phaseLabel: "Complete",
       cycleLabel: `${totalCycles} of ${totalCycles}`,
       cycleProgressPercent: 100,
+      progressPercent: 100,
     });
   }, [isFinished, onStatusChange, totalCycles]);
 

@@ -29,6 +29,14 @@ function getPhaseCountdown(msIntoPhase: number): number {
   return Math.max(1, Math.ceil((PHASE_MS - msIntoPhase - 1000) / 1000));
 }
 
+function clampProgress(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(100, value));
+}
+
 export default function BoxBreathing({
   isRunning,
   elapsedSeconds,
@@ -55,7 +63,9 @@ export default function BoxBreathing({
       return;
     }
 
-    setVisualElapsedMs((current) => Math.max(current, Math.min(elapsedSeconds * 1000, targetDurationMs)));
+    setVisualElapsedMs((current) =>
+      Math.max(current, Math.min(elapsedSeconds * 1000, targetDurationMs))
+    );
   }, [elapsedSeconds, targetDurationMs]);
 
   useEffect(() => {
@@ -88,41 +98,64 @@ export default function BoxBreathing({
     };
   }, [isFinished, isRunning, targetDurationMs]);
 
-  const cappedElapsedMs = Math.min(visualElapsedMs, targetDurationMs);
-  const completedCycles = Math.min(TOTAL_CYCLES, Math.floor(cappedElapsedMs / CYCLE_MS));
-  const msIntoCycle = cappedElapsedMs % CYCLE_MS;
+  const progress = useMemo(() => {
+    const elapsedTimeMs = Math.min(visualElapsedMs, targetDurationMs);
+    const totalTimeMs = Math.max(1, targetDurationMs);
+    const cycleDurationMs = CYCLE_MS;
+    const currentCycleElapsedMs =
+      elapsedTimeMs >= targetDurationMs ? cycleDurationMs : elapsedTimeMs % cycleDurationMs;
+
+    return {
+      elapsedTimeMs,
+      totalTimeMs,
+      cycleDurationMs,
+      overallPercent: clampProgress((elapsedTimeMs / totalTimeMs) * 100),
+      cyclePercent: clampProgress((currentCycleElapsedMs / cycleDurationMs) * 100),
+    };
+  }, [targetDurationMs, visualElapsedMs]);
+  const completedCycles = Math.min(TOTAL_CYCLES, Math.floor(progress.elapsedTimeMs / CYCLE_MS));
+  const msIntoCycle =
+    progress.elapsedTimeMs >= targetDurationMs ? CYCLE_MS : progress.elapsedTimeMs % CYCLE_MS;
   const phaseIndex = Math.min(PHASES_PER_CYCLE - 1, Math.floor(msIntoCycle / PHASE_MS));
   const msIntoPhase = msIntoCycle % PHASE_MS;
   const rawPhaseProgress = msIntoPhase / PHASE_MS;
   const phaseProgress =
     completedCycles >= TOTAL_CYCLES
       ? 1
-      : rawPhaseProgress === 0 && cappedElapsedMs > 0
+      : rawPhaseProgress === 0 && progress.elapsedTimeMs > 0
         ? 1
         : rawPhaseProgress;
   const countdown = getPhaseCountdown(msIntoPhase);
   const currentPhase = PHASES[phaseIndex];
-  const lineEndX = currentPhase.start.x + (currentPhase.end.x - currentPhase.start.x) * phaseProgress;
-  const lineEndY = currentPhase.start.y + (currentPhase.end.y - currentPhase.start.y) * phaseProgress;
-  const cycleProgressPercent = Math.min(100, (msIntoCycle / CYCLE_MS) * 100);
+  const lineEndX =
+    currentPhase.start.x + (currentPhase.end.x - currentPhase.start.x) * phaseProgress;
+  const lineEndY =
+    currentPhase.start.y + (currentPhase.end.y - currentPhase.start.y) * phaseProgress;
 
   useEffect(() => {
     if (isFinished) {
       return;
     }
 
-    if (completedCycles >= TOTAL_CYCLES || cappedElapsedMs >= targetDurationMs) {
+    if (completedCycles >= TOTAL_CYCLES || progress.elapsedTimeMs >= targetDurationMs) {
       onFinish();
     }
-  }, [cappedElapsedMs, completedCycles, isFinished, onFinish, targetDurationMs]);
+  }, [completedCycles, isFinished, onFinish, progress.elapsedTimeMs, targetDurationMs]);
 
   useEffect(() => {
     onStatusChange?.({
       phaseLabel: currentPhase.instruction,
       cycleLabel: `${Math.min(TOTAL_CYCLES, completedCycles + 1)} of ${TOTAL_CYCLES}`,
-      cycleProgressPercent,
+      cycleProgressPercent: progress.cyclePercent,
+      progressPercent: progress.overallPercent,
     });
-  }, [completedCycles, currentPhase.instruction, cycleProgressPercent, onStatusChange]);
+  }, [
+    completedCycles,
+    currentPhase.instruction,
+    onStatusChange,
+    progress.cyclePercent,
+    progress.overallPercent,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -134,14 +167,14 @@ export default function BoxBreathing({
     if (isFinished) {
       return "Complete";
     }
-    if (!isRunning && cappedElapsedMs === 0) {
+    if (!isRunning && progress.elapsedTimeMs === 0) {
       return "Press Start";
     }
     if (!isRunning) {
       return "Paused";
     }
     return currentPhase.instruction;
-  }, [cappedElapsedMs, currentPhase.instruction, isFinished, isRunning]);
+  }, [currentPhase.instruction, isFinished, isRunning, progress.elapsedTimeMs]);
 
   return (
     <div className="space-y-5">

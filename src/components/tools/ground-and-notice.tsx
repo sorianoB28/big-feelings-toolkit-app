@@ -30,7 +30,13 @@ const STEPS = [
     title: "Notice something you can feel.",
     helper: "Choose one simple body cue that feels real right now.",
     Icon: Hand,
-    options: ["Feet on the floor", "Chair under me", "Hands together", "Air on my skin", "Something else"],
+    options: [
+      "Feet on the floor",
+      "Chair under me",
+      "Hands together",
+      "Air on my skin",
+      "Something else",
+    ],
   },
 ] as const;
 
@@ -50,7 +56,7 @@ export default function GroundAndNotice({
 
   const completedCount = useMemo(
     () => STEPS.filter((step) => Boolean(selections[step.id])).length,
-    [selections],
+    [selections]
   );
   const activeStepIndex = STEPS.findIndex((step) => !selections[step.id]);
   const activeStep = activeStepIndex === -1 ? null : STEPS[activeStepIndex];
@@ -79,10 +85,20 @@ export default function GroundAndNotice({
             : activeStep
               ? activeStep.label
               : "Grounding",
-      cycleLabel: isComplete ? `${STEPS.length} of ${STEPS.length}` : `${completedCount + 1} of ${STEPS.length}`,
+      cycleLabel: isComplete
+        ? `${STEPS.length} of ${STEPS.length}`
+        : `${completedCount + 1} of ${STEPS.length}`,
       cycleProgressPercent: progressPercent,
     });
-  }, [activeStep, completedCount, isComplete, isFinished, isRunning, onStatusChange, progressPercent]);
+  }, [
+    activeStep,
+    completedCount,
+    isComplete,
+    isFinished,
+    isRunning,
+    onStatusChange,
+    progressPercent,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -104,7 +120,9 @@ export default function GroundAndNotice({
   return (
     <div className="space-y-5">
       <div className="text-center">
-        <p className="text-xs font-semibold uppercase tracking-wide text-primary">Ground &amp; notice</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+          Ground &amp; notice
+        </p>
         <p className="mt-1 text-lg font-semibold text-dark">
           {isComplete
             ? "Nice noticing. You are back in this moment."
@@ -127,7 +145,7 @@ export default function GroundAndNotice({
                 animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
                 exit={prefersReducedMotion ? undefined : { opacity: 0, y: -10 }}
                 transition={{ duration: 0.24, ease: "easeOut" }}
-                className="flex min-h-[24rem] flex-col justify-center rounded-[1.7rem] border border-white/70 bg-white/82 p-6 text-center shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)] sm:p-8"
+                className="bg-white/82 flex min-h-[24rem] flex-col justify-center rounded-[1.7rem] border border-white/70 p-6 text-center shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)] sm:p-8"
               >
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,rgba(79,140,255,0.14),rgba(94,211,179,0.16))] text-primary-dark shadow-sm">
                   <Sparkles className="h-6 w-6" />
@@ -169,7 +187,7 @@ export default function GroundAndNotice({
                 animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
                 exit={prefersReducedMotion ? undefined : { opacity: 0, y: -10 }}
                 transition={{ duration: 0.24, ease: "easeOut" }}
-                className="rounded-[1.7rem] border border-white/70 bg-white/82 p-5 shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)] sm:p-6"
+                className="bg-white/82 rounded-[1.7rem] border border-white/70 p-5 shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)] sm:p-6"
               >
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="flex items-start gap-4">
@@ -177,7 +195,7 @@ export default function GroundAndNotice({
                       <activeStep.Icon className="h-6 w-6" />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-dark/72">
+                      <p className="text-primary-dark/72 text-xs font-semibold uppercase tracking-[0.18em]">
                         Step {activeStepIndex + 1} of {STEPS.length}
                       </p>
                       <h3 className="mt-2 text-[1.55rem] font-semibold tracking-[-0.04em] text-dark">
@@ -204,7 +222,7 @@ export default function GroundAndNotice({
                       whileTap={prefersReducedMotion || !isRunning ? undefined : { scale: 0.98 }}
                       transition={{ duration: 0.2, ease: "easeOut" }}
                       disabled={!isRunning || isFinished}
-                      className="toolkit-focus-ring min-h-[5rem] rounded-[1.35rem] border border-white/80 bg-white/88 px-4 py-4 text-left shadow-[0_18px_36px_-30px_rgba(15,23,42,0.14)] transition duration-[250ms] ease-out hover:border-primary/35 hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-white/88"
+                      className="toolkit-focus-ring bg-white/88 disabled:hover:bg-white/88 min-h-[5rem] rounded-[1.35rem] border border-white/80 px-4 py-4 text-left shadow-[0_18px_36px_-30px_rgba(15,23,42,0.14)] transition duration-[250ms] ease-out hover:border-primary/35 hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <span className="block text-sm font-semibold text-dark">{option}</span>
                       <span className="mt-2 block text-xs uppercase tracking-[0.16em] text-slate-500">
@@ -219,22 +237,8 @@ export default function GroundAndNotice({
         </div>
 
         <div className="flex flex-col gap-4">
-          <div className="rounded-[1.7rem] border border-white/70 bg-white/82 p-4 shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)]">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-dark">Progress</p>
-              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary-dark">
-                {progressPercent}%
-              </span>
-            </div>
-            <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-200/80">
-              <motion.div
-                className="h-full rounded-full bg-[linear-gradient(90deg,#7C6CFF_0%,#4F8CFF_58%,#5ED3B3_100%)]"
-                animate={{ width: `${progressPercent}%` }}
-                transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.22, ease: "easeOut" }}
-              />
-            </div>
-
-            <div className="mt-4 space-y-3">
+          <div className="bg-white/82 rounded-[1.7rem] border border-white/70 p-4 shadow-[0_20px_42px_-30px_rgba(15,23,42,0.16)]">
+            <div className="space-y-3">
               {STEPS.map((step, index) => {
                 const selectedValue = selections[step.id];
                 const complete = Boolean(selectedValue);
@@ -252,7 +256,7 @@ export default function GroundAndNotice({
                         <p className="mt-1 text-sm font-semibold text-dark">{step.label}</p>
                       </div>
                       {complete ? (
-                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/12 text-primary-dark">
+                        <span className="bg-primary/12 flex h-7 w-7 items-center justify-center rounded-full text-primary-dark">
                           <Check className="h-4 w-4" />
                         </span>
                       ) : (

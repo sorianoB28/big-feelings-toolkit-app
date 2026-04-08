@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Check, RefreshCw, Sparkles } from "lucide-react";
 import { MotionButton } from "@/components/ui/motion-primitives";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import {
   toolkitButtonPrimaryClass,
   toolkitButtonSecondaryClass,
@@ -168,7 +169,9 @@ export default function ColorCalm({
       <div className="text-center">
         <p className="text-xs font-semibold uppercase tracking-wide text-primary">Color calm</p>
         <p className="mt-1 text-lg font-semibold text-dark">
-          {isCanvasComplete ? "A calm canvas, one tap at a time." : "Tap the shapes and let the color settle in."}
+          {isCanvasComplete
+            ? "A calm canvas, one tap at a time."
+            : "Tap the shapes and let the color settle in."}
         </p>
         <p className="mt-1 text-sm text-slate-600">{helperCopy}</p>
       </div>
@@ -176,12 +179,12 @@ export default function ColorCalm({
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <div className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.95),rgba(234,242,255,0.8)_48%,rgba(247,250,252,0.72))] px-4 py-5 shadow-[0_24px_54px_-34px_rgba(79,140,255,0.26)] sm:px-6 sm:py-6">
           <div className="pointer-events-none absolute inset-x-10 top-0 h-24 rounded-full bg-white/70 blur-3xl" />
-          <div className="pointer-events-none absolute -left-8 top-12 h-32 w-32 rounded-full bg-secondary/12 blur-3xl" />
-          <div className="pointer-events-none absolute -right-10 bottom-10 h-36 w-36 rounded-full bg-accent/14 blur-3xl" />
+          <div className="bg-secondary/12 pointer-events-none absolute -left-8 top-12 h-32 w-32 rounded-full blur-3xl" />
+          <div className="bg-accent/14 pointer-events-none absolute -right-10 bottom-10 h-36 w-36 rounded-full blur-3xl" />
 
           <div className="relative mx-auto aspect-square w-full max-w-[28rem]">
             <motion.div
-              className="absolute inset-[12%] rounded-full border border-primary/16 bg-white/36"
+              className="border-primary/16 bg-white/36 absolute inset-[12%] rounded-full border"
               animate={
                 prefersReducedMotion || isFinished
                   ? undefined
@@ -211,9 +214,13 @@ export default function ColorCalm({
                     type="button"
                     onClick={() => fillSegment(segment.id)}
                     whileHover={
-                      prefersReducedMotion || isFilled || !isRunning ? undefined : { y: -3, scale: 1.02 }
+                      prefersReducedMotion || isFilled || !isRunning
+                        ? undefined
+                        : { y: -3, scale: 1.02 }
                     }
-                    whileTap={prefersReducedMotion || isFilled || !isRunning ? undefined : { scale: 0.97 }}
+                    whileTap={
+                      prefersReducedMotion || isFilled || !isRunning ? undefined : { scale: 0.97 }
+                    }
                     transition={{ duration: 0.22, ease: "easeOut" }}
                     className={`${segment.size} relative block rounded-[2rem] border border-white/80 shadow-[0_20px_34px_-28px_rgba(15,23,42,0.28)]`}
                     aria-label={segment.label}
@@ -231,7 +238,11 @@ export default function ColorCalm({
                         opacity: isFilled ? 1 : 0,
                         scale: isFilled ? 1 : 0.92,
                       }}
-                      transition={{ duration: 0.34, ease: "easeOut", delay: isFilled ? index * 0.02 : 0 }}
+                      transition={{
+                        duration: 0.34,
+                        ease: "easeOut",
+                        delay: isFilled ? index * 0.02 : 0,
+                      }}
                     />
                     <motion.span
                       className="absolute inset-0 rounded-[2rem] border border-white/70"
@@ -259,14 +270,14 @@ export default function ColorCalm({
               );
             })}
 
-            <div className="absolute left-1/2 top-1/2 flex h-[34%] w-[34%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/85 bg-white/86 shadow-[0_22px_40px_-28px_rgba(79,140,255,0.38)] backdrop-blur">
+            <div className="bg-white/86 absolute left-1/2 top-1/2 flex h-[34%] w-[34%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/85 shadow-[0_22px_40px_-28px_rgba(79,140,255,0.38)] backdrop-blur">
               <div
                 className="absolute inset-[8%] rounded-full"
                 style={{
                   backgroundImage: `conic-gradient(from 180deg, #7C6CFF 0%, #4F8CFF ${fillProgressPercent / 2}%, #5ED3B3 ${fillProgressPercent}%, rgba(226,232,240,0.9) ${fillProgressPercent}%, rgba(226,232,240,0.9) 100%)`,
                 }}
               />
-              <div className="absolute inset-[16%] rounded-full bg-white/94" />
+              <div className="bg-white/94 absolute inset-[16%] rounded-full" />
               <div className="relative text-center">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary-dark/70">
                   Filled
@@ -283,20 +294,18 @@ export default function ColorCalm({
         </div>
 
         <div className="flex flex-col gap-4">
-          <div className="rounded-[1.7rem] border border-white/70 bg-white/82 p-4 shadow-[0_20px_44px_-32px_rgba(15,23,42,0.18)]">
+          <div className="bg-white/82 rounded-[1.7rem] border border-white/70 p-4 shadow-[0_20px_44px_-32px_rgba(15,23,42,0.18)]">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-dark">Canvas progress</p>
               <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary-dark">
                 {fillProgressPercent}%
               </span>
             </div>
-            <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-200/80">
-              <motion.div
-                className="h-full rounded-full bg-[linear-gradient(90deg,#7C6CFF_0%,#4F8CFF_56%,#5ED3B3_100%)]"
-                animate={{ width: `${fillProgressPercent}%` }}
-                transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.24, ease: "easeOut" }}
-              />
-            </div>
+            <ProgressBar
+              value={fillProgressPercent}
+              animated={!prefersReducedMotion}
+              className="mt-3"
+            />
             <AnimatePresence mode="wait">
               <motion.div
                 key={isCanvasComplete ? "complete" : filledCount}
@@ -312,7 +321,9 @@ export default function ColorCalm({
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-dark">
-                      {isCanvasComplete ? "Nice work. Your calm canvas is complete." : "Keep going one shape at a time."}
+                      {isCanvasComplete
+                        ? "Nice work. Your calm canvas is complete."
+                        : "Keep going one shape at a time."}
                     </p>
                     <p className="mt-1 text-sm leading-6 text-slate-600">
                       {isCanvasComplete
@@ -325,7 +336,7 @@ export default function ColorCalm({
             </AnimatePresence>
           </div>
 
-          <div className="rounded-[1.7rem] border border-white/70 bg-white/82 p-3 shadow-[0_20px_44px_-32px_rgba(15,23,42,0.18)]">
+          <div className="bg-white/82 rounded-[1.7rem] border border-white/70 p-3 shadow-[0_20px_44px_-32px_rgba(15,23,42,0.18)]">
             <div className="grid gap-3">
               <MotionButton
                 type="button"

@@ -49,9 +49,6 @@ function strategyImage(fileName: string): string {
   return `${CHECKIN_IMAGE_ROOT}/strategies/${fileName}`;
 }
 
-const MISSING_STRATEGY_ASSET_NOTE =
-  "Expected Canva export was not present in public/images/checkin/strategies when this registry was created.";
-
 export const CHECKIN_ZONES = [
   {
     key: "red",
@@ -807,19 +804,6 @@ export const CHECKIN_STRATEGY_CARDS = [
     ),
   },
   {
-    key: "splash-water-on-your-face",
-    title: "Splash Water on Your Face",
-    description: "Use cool water on your face to help your body reset.",
-    whyItHelps: "A quick sensory change can interrupt stress and help you refocus.",
-    category: "body-calmers",
-    ...asset(
-      strategyImage("strategy-splash-water-on-your-face.png.png"),
-      "Splash water on your face strategy illustration.",
-      "pending",
-      MISSING_STRATEGY_ASSET_NOTE
-    ),
-  },
-  {
     key: "count-to-10",
     title: "Count to 10",
     description: "Count slowly from one to ten before you react.",
@@ -850,19 +834,6 @@ export const CHECKIN_STRATEGY_CARDS = [
     ...asset(
       strategyImage("strategy-shake-out-your-hands.png.png"),
       "Shake out your hands strategy illustration."
-    ),
-  },
-  {
-    key: "jog-in-place",
-    title: "Jog in Place",
-    description: "Move your feet for a short burst right where you are.",
-    whyItHelps: "Quick movement helps your body use up restless energy safely.",
-    category: "release-energy",
-    ...asset(
-      strategyImage("strategy-jog-in-place.png.png"),
-      "Jog in place strategy illustration.",
-      "pending",
-      MISSING_STRATEGY_ASSET_NOTE
     ),
   },
   {
@@ -921,19 +892,6 @@ export const CHECKIN_STRATEGY_CARDS = [
     ),
   },
   {
-    key: "talk-to-a-parent",
-    title: "Talk to a Parent",
-    description: "Reach out to a parent or caregiver you trust.",
-    whyItHelps: "Talking with home support can help you feel cared for and understood.",
-    category: "social-support",
-    ...asset(
-      strategyImage("strategy-talk-to-a-parent.png.png"),
-      "Talk to a parent strategy illustration.",
-      "pending",
-      MISSING_STRATEGY_ASSET_NOTE
-    ),
-  },
-  {
     key: "get-a-hug",
     title: "Get a Hug",
     description: "Ask for a hug from a safe person if hugs feel helpful.",
@@ -970,19 +928,6 @@ export const CHECKIN_STRATEGY_CARDS = [
     whyItHelps: "Play can give your brain a break from looping thoughts.",
     category: "safe-distractions",
     ...asset(strategyImage("strategy-play-a-game.png.png"), "Play a game strategy illustration."),
-  },
-  {
-    key: "distract-your-brain",
-    title: "Distract Your Brain",
-    description: "Choose a safe, short activity that helps you think about something else.",
-    whyItHelps: "A healthy distraction can create space before you come back to the feeling.",
-    category: "safe-distractions",
-    ...asset(
-      strategyImage("strategy-distract-your-brain.png.png"),
-      "Distract your brain strategy illustration.",
-      "pending",
-      MISSING_STRATEGY_ASSET_NOTE
-    ),
   },
   {
     key: "use-a-fidget",

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { ProgressBar, normalizeProgressValue } from "@/components/ui/ProgressBar";
 import { cn } from "@/lib/utils";
 
 const INHALE_MS = 4000;
@@ -78,12 +79,14 @@ export default function CircleBreathing({
 
   const clampedElapsedMs = Math.min(elapsedMs, totalDurationMs);
   const overallProgress = clampedElapsedMs / totalDurationMs;
+  const displayedOverallProgressPercent = normalizeProgressValue(overallProgress * 100);
   const completedCycles = Math.floor(clampedElapsedMs / CYCLE_DURATION_MS);
   const currentCycleIndex = Math.min(safeTotalCycles - 1, completedCycles);
 
   const rawCycleElapsedMs = clampedElapsedMs % CYCLE_DURATION_MS;
   const cycleElapsedMs = isFinished ? CYCLE_DURATION_MS : rawCycleElapsedMs;
   const cycleProgress = cycleElapsedMs / CYCLE_DURATION_MS;
+  const displayedCycleProgressPercent = normalizeProgressValue(cycleProgress * 100);
 
   const phase = useMemo(() => getBreathPhase(rawCycleElapsedMs), [rawCycleElapsedMs]);
   const phaseLabel = useMemo(() => getPhaseLabel(phase), [phase]);
@@ -260,8 +263,8 @@ export default function CircleBreathing({
         className
       )}
     >
-      <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-primary/8 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 -right-20 h-60 w-60 rounded-full bg-gray-500/7 blur-3xl" />
+      <div className="bg-primary/8 pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full blur-3xl" />
+      <div className="bg-gray-500/7 pointer-events-none absolute -bottom-24 -right-20 h-60 w-60 rounded-full blur-3xl" />
 
       <div className="relative z-10 space-y-6">
         <header className="space-y-3">
@@ -275,15 +278,14 @@ export default function CircleBreathing({
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-gray-600">
               <span>Total Progress</span>
-              <span>{Math.round(overallProgress * 100)}%</span>
+              <span>{displayedOverallProgressPercent}%</span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-gray-200">
-              <motion.div
-                className="h-full rounded-full bg-primary"
-                animate={{ width: `${Math.min(100, Math.max(0, overallProgress * 100))}%` }}
-                transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.25, ease: "easeOut" }}
-              />
-            </div>
+            <ProgressBar
+              value={displayedOverallProgressPercent}
+              animated={!prefersReducedMotion}
+              className="h-2 bg-gray-200"
+              fillClassName="bg-primary"
+            />
           </div>
         </header>
 
@@ -295,7 +297,11 @@ export default function CircleBreathing({
             <div className="relative flex h-56 w-56 items-center justify-center rounded-full border border-gray-200/80 bg-gradient-to-b from-gray-100 to-gray-200/70">
               <motion.div
                 className="absolute h-44 w-44 rounded-full bg-primary/15 blur-2xl"
-                animate={prefersReducedMotion ? undefined : { scale: [1, 1.08, 1], opacity: [0.3, 0.5, 0.3] }}
+                animate={
+                  prefersReducedMotion
+                    ? undefined
+                    : { scale: [1, 1.08, 1], opacity: [0.3, 0.5, 0.3] }
+                }
                 transition={
                   prefersReducedMotion
                     ? { duration: 0 }
@@ -305,7 +311,9 @@ export default function CircleBreathing({
               <motion.div
                 className="relative h-36 w-36 rounded-full border border-primary/40 bg-gradient-to-br from-primary/35 via-primary/45 to-primary/70"
                 animate={{ scale: circleScale }}
-                transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.12, ease: "linear" }}
+                transition={
+                  prefersReducedMotion ? { duration: 0 } : { duration: 0.12, ease: "linear" }
+                }
               />
             </div>
           </div>
@@ -314,15 +322,14 @@ export default function CircleBreathing({
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-gray-600">
             <span>Cycle Progress</span>
-            <span>{Math.round(cycleProgress * 100)}%</span>
+            <span>{displayedCycleProgressPercent}%</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-gray-200">
-            <motion.div
-              className="h-full rounded-full bg-primary/80"
-              animate={{ width: `${Math.min(100, Math.max(0, cycleProgress * 100))}%` }}
-              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2, ease: "linear" }}
-            />
-          </div>
+          <ProgressBar
+            value={displayedCycleProgressPercent}
+            animated={!prefersReducedMotion}
+            className="h-2 bg-gray-200"
+            fillClassName="bg-primary/80"
+          />
         </div>
 
         <div className="flex flex-wrap gap-3">

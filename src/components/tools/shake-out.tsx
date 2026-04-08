@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
+import { ProgressBar, normalizeProgressValue } from "@/components/ui/ProgressBar";
 import { triggerCompletionReward } from "@/lib/completion-reward";
 import type { ToolRuntimeProps } from "@/lib/tools/registry";
 
@@ -42,11 +43,7 @@ const PHASES = [
 
 const SEQUENCE_SECONDS = PHASE_SECONDS * PHASES.length;
 
-function getAnimationForPhase(phaseKey: (typeof PHASES)[number]["key"], isRunning: boolean) {
-  if (!isRunning) {
-    return { scale: 1, rotate: 0, x: 0, y: 0 };
-  }
-
+function getAnimationForPhase(phaseKey: (typeof PHASES)[number]["key"]) {
   if (phaseKey === "hands") {
     return { rotate: [-8, 8, -8], x: [-6, 6, -6] };
   }
@@ -56,31 +53,25 @@ function getAnimationForPhase(phaseKey: (typeof PHASES)[number]["key"], isRunnin
   if (phaseKey === "legs") {
     return { y: [0, -10, 0], rotate: [-2, 2, -2] };
   }
-  if (phaseKey === "stretch") {
-    return { scale: [1, 1.12, 1] };
-  }
 
-  return { scale: [1, 0.96, 1], opacity: [1, 0.82, 1] };
+  return null;
+}
+
+function getRestAnimation() {
+  return { scale: 1, rotate: 0, x: 0, y: 0, opacity: 1 };
 }
 
 export default function ShakeOutTool({
   isRunning,
+  isFinished,
   elapsedSeconds,
-  durationSeconds,
   onFinish,
   onStatusChange,
 }: ToolRuntimeProps) {
-  const [hasCompletedPrimarySequence, setHasCompletedPrimarySequence] = useState(false);
-  const [hasRepeatedOnce, setHasRepeatedOnce] = useState(false);
-  const [repeatStartSecond, setRepeatStartSecond] = useState<number | null>(null);
   const rewardPlayedRef = useRef(false);
   const previousElapsedRef = useRef(elapsedSeconds);
 
-  const isRepeatActive = hasRepeatedOnce && repeatStartSecond !== null;
-  const sequenceElapsedSeconds = isRepeatActive
-    ? Math.max(0, elapsedSeconds - repeatStartSecond)
-    : elapsedSeconds;
-  const clampedSequenceElapsed = Math.min(sequenceElapsedSeconds, SEQUENCE_SECONDS);
+  const clampedSequenceElapsed = Math.min(elapsedSeconds, SEQUENCE_SECONDS);
   const phaseIndex = Math.min(
     PHASES.length - 1,
     Math.floor(clampedSequenceElapsed / PHASE_SECONDS)
@@ -88,61 +79,42 @@ export default function ShakeOutTool({
   const currentPhase = PHASES[phaseIndex];
   const elapsedInPhase = clampedSequenceElapsed % PHASE_SECONDS;
   const phaseSecondsLeft = Math.max(1, PHASE_SECONDS - elapsedInPhase);
-  const sequenceProgressPercent = Math.min(
-    100,
-    (clampedSequenceElapsed / SEQUENCE_SECONDS) * 100
-  );
-  const remainingForRepeat = Math.max(0, durationSeconds - elapsedSeconds);
+  const sequenceProgressPercent = Math.min(100, (clampedSequenceElapsed / SEQUENCE_SECONDS) * 100);
+  const displayedSequenceProgressPercent = normalizeProgressValue(sequenceProgressPercent);
+  const isSequenceComplete = elapsedSeconds >= SEQUENCE_SECONDS;
 
   useEffect(() => {
     const wasReset = elapsedSeconds === 0 && previousElapsedRef.current > 0;
     previousElapsedRef.current = elapsedSeconds;
 
-    if (!wasReset) {
-      return;
+    if (wasReset) {
+      rewardPlayedRef.current = false;
     }
-
-    setHasCompletedPrimarySequence(false);
-    setHasRepeatedOnce(false);
-    setRepeatStartSecond(null);
-    rewardPlayedRef.current = false;
   }, [elapsedSeconds]);
 
   useEffect(() => {
-    if (!hasCompletedPrimarySequence && elapsedSeconds >= SEQUENCE_SECONDS) {
-      setHasCompletedPrimarySequence(true);
-
-      if (!rewardPlayedRef.current) {
-        rewardPlayedRef.current = true;
-        void triggerCompletionReward();
-      }
+    if (!isSequenceComplete || isFinished) {
+      return;
     }
-  }, [elapsedSeconds, hasCompletedPrimarySequence]);
+
+    if (!rewardPlayedRef.current) {
+      rewardPlayedRef.current = true;
+      void triggerCompletionReward();
+    }
+
+    onFinish();
+  }, [isFinished, isSequenceComplete, onFinish]);
 
   useEffect(() => {
-    if (isRepeatActive && sequenceElapsedSeconds >= SEQUENCE_SECONDS) {
-      onFinish();
-    }
-  }, [isRepeatActive, onFinish, sequenceElapsedSeconds]);
-
-  useEffect(() => {
-    const phaseLabel = hasCompletedPrimarySequence && !isRepeatActive
-      ? "Sequence complete"
-      : currentPhase.title;
+    const phaseLabel = isSequenceComplete ? "Sequence complete" : currentPhase.title;
 
     onStatusChange?.({
       phaseLabel,
       cycleLabel: `${phaseIndex + 1} of ${PHASES.length}`,
-      cycleProgressPercent: hasCompletedPrimarySequence && !isRepeatActive ? 100 : sequenceProgressPercent,
+      cycleProgressPercent: isSequenceComplete ? 100 : sequenceProgressPercent,
+      progressPercent: isSequenceComplete ? 100 : sequenceProgressPercent,
     });
-  }, [
-    currentPhase.title,
-    hasCompletedPrimarySequence,
-    isRepeatActive,
-    onStatusChange,
-    phaseIndex,
-    sequenceProgressPercent,
-  ]);
+  }, [currentPhase.title, isSequenceComplete, onStatusChange, phaseIndex, sequenceProgressPercent]);
 
   useEffect(() => {
     return () => {
@@ -150,29 +122,11 @@ export default function ShakeOutTool({
     };
   }, [onStatusChange]);
 
-  const canRepeat = hasCompletedPrimarySequence && !hasRepeatedOnce && remainingForRepeat >= PHASE_SECONDS;
-  const animation = useMemo(
-    () => getAnimationForPhase(currentPhase.key, isRunning),
-    [currentPhase.key, isRunning]
-  );
-
-  function handleRepeatOnce() {
-    if (!canRepeat) {
-      return;
-    }
-
-    setHasRepeatedOnce(true);
-    setRepeatStartSecond(elapsedSeconds);
-  }
-
-  const headline = hasCompletedPrimarySequence && !isRepeatActive
-    ? "Nice reset. Ready to finish?"
-    : isRepeatActive
-      ? "Bonus round"
-      : currentPhase.title;
-
-  const prompt = hasCompletedPrimarySequence && !isRepeatActive
-    ? "You completed one full shake-out sequence."
+  const phaseAnimation = useMemo(() => getAnimationForPhase(currentPhase.key), [currentPhase.key]);
+  const shouldAnimate = isRunning && !isFinished && !isSequenceComplete && phaseAnimation !== null;
+  const headline = isSequenceComplete ? "Nice reset" : currentPhase.title;
+  const prompt = isSequenceComplete
+    ? "You completed the full shake-out sequence."
     : currentPhase.prompt;
 
   return (
@@ -180,7 +134,9 @@ export default function ShakeOutTool({
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-primary">Release energy</p>
         <p className="mt-1 text-base font-semibold text-dark">
-          {isRunning ? headline : "Press start when you are ready to move safely."}
+          {isRunning && !isSequenceComplete
+            ? headline
+            : "Press start when you are ready to move safely."}
         </p>
         <p className="mt-1 text-sm text-gray-700">{prompt}</p>
       </div>
@@ -188,8 +144,12 @@ export default function ShakeOutTool({
       <div className="rounded-xl border border-border-soft bg-surface p-5 text-center">
         <motion.div
           className="mx-auto inline-flex h-24 w-24 items-center justify-center rounded-full bg-primary/10 text-4xl"
-          animate={animation}
-          transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
+          animate={shouldAnimate ? phaseAnimation : getRestAnimation()}
+          transition={
+            shouldAnimate
+              ? { duration: 0.9, repeat: Infinity, ease: "easeInOut" }
+              : { duration: 0.18, ease: "easeOut" }
+          }
         >
           {currentPhase.emoji}
         </motion.div>
@@ -203,42 +163,17 @@ export default function ShakeOutTool({
       <div className="rounded-lg border border-border-soft bg-surface p-3">
         <div className="flex items-center justify-between text-xs uppercase tracking-wide text-gray-600">
           <span>Sequence progress</span>
-          <span>{Math.round(sequenceProgressPercent)}%</span>
+          <span>{displayedSequenceProgressPercent}%</span>
         </div>
-        <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200">
-          <div
-            className="h-full rounded-full bg-primary transition-all duration-[200ms] ease-out"
-            style={{
-              width: `${hasCompletedPrimarySequence && !isRepeatActive ? 100 : sequenceProgressPercent}%`,
-            }}
-          />
-        </div>
+        <ProgressBar
+          value={isSequenceComplete ? 100 : displayedSequenceProgressPercent}
+          className="mt-2 h-2 bg-gray-200"
+          fillClassName="bg-primary"
+        />
         <p className="mt-2 text-xs text-gray-600">
           10s each: hands, arms, legs, big stretch, stillness.
         </p>
       </div>
-
-      <div className="flex flex-col gap-2 sm:flex-row">
-        {hasCompletedPrimarySequence ? (
-          <button
-            type="button"
-            onClick={onFinish}
-            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition duration-[250ms] ease-out hover:bg-primary-dark"
-          >
-            Finish Sequence
-          </button>
-        ) : null}
-
-        <button
-          type="button"
-          onClick={handleRepeatOnce}
-          disabled={!canRepeat}
-          className="inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-300 bg-surface px-4 py-2 text-sm font-medium text-dark shadow-sm transition duration-[250ms] ease-out hover:bg-gray-100 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
-        >
-          Repeat Once (Optional)
-        </button>
-      </div>
     </div>
   );
 }
-
