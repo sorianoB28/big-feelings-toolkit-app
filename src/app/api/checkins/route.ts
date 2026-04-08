@@ -11,6 +11,7 @@ import { getOwnedProfile } from "@/db/queries/profiles";
 import type { CheckinStrategyKey, CheckinZoneKey } from "@/lib/checkin";
 
 type CreateCheckinRequestBody = {
+  sessionKey?: unknown;
   profileId?: unknown;
   zoneKey?: unknown;
   feelingLabel?: unknown;
@@ -66,6 +67,7 @@ export async function POST(request: Request) {
   }
 
   const profileId = typeof body.profileId === "string" ? body.profileId.trim() : "";
+  const sessionKey = typeof body.sessionKey === "string" ? body.sessionKey.trim() : "";
   const feelingLabel = typeof body.feelingLabel === "string" ? body.feelingLabel.trim() : "";
   const intensity = isValidIntensity(body.intensity) ? body.intensity : null;
   const bodyClueKeys = isStringList(body.bodyClueKeys)
@@ -89,7 +91,7 @@ export async function POST(request: Request) {
     ? Array.from(new Set(body.selectedStrategyKeys))
     : [];
 
-  if (!profileId || !isZoneKey(body.zoneKey) || !feelingLabel) {
+  if (!sessionKey || !profileId || !isZoneKey(body.zoneKey) || !feelingLabel) {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 
@@ -101,6 +103,7 @@ export async function POST(request: Request) {
 
   try {
     const result = await createGuidedProfileCheckin({
+      clientSessionKey: sessionKey,
       profileId: ownedProfile.id,
       zoneKey: body.zoneKey,
       feelingLabel,

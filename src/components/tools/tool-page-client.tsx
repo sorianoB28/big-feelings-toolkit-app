@@ -111,6 +111,7 @@ export function ToolPageClient({
       description={tool.description}
       durationSeconds={tool.durationSeconds}
       hasProgress={tool.hasProgress}
+      isSelfPaced={tool.isSelfPaced ?? false}
       mode={runnerMode}
       ToolComponent={ToolComponent}
       from={from}

@@ -19,6 +19,7 @@ import {
 const GUIDED_CHECKIN_STORAGE_KEY = "bft.guided-checkin.state";
 
 type GuidedCheckInAction =
+  | { type: "set-session-key"; sessionKey: string }
   | { type: "set-profile"; profileId: string | null; profileName: string | null }
   | { type: "set-zone"; zoneKey: CheckinZoneKey | null }
   | { type: "set-feeling"; feelingKey: CheckinFeelingKey | null }
@@ -61,9 +62,18 @@ function toggleValue<T extends string>(values: T[], value: T): T[] {
   return values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
 }
 
+function createSessionKey(): string {
+  if (typeof globalThis !== "undefined" && "crypto" in globalThis && globalThis.crypto?.randomUUID) {
+    return globalThis.crypto.randomUUID();
+  }
+
+  return `guided-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 function mergeGuidedCheckInState(snapshot: Partial<GuidedCheckInState>): GuidedCheckInState {
   return {
     ...INITIAL_GUIDED_CHECKIN_STATE,
+    sessionKey: typeof snapshot.sessionKey === "string" ? snapshot.sessionKey : createSessionKey(),
     ...snapshot,
     startedAt: typeof snapshot.startedAt === "string" ? snapshot.startedAt : null,
     intensity:
@@ -104,20 +114,31 @@ function ensureStartedAt(state: GuidedCheckInState): string {
   return state.startedAt ?? new Date().toISOString();
 }
 
+function ensureSessionKey(state: GuidedCheckInState): string {
+  return state.sessionKey ?? createSessionKey();
+}
+
 function guidedCheckInReducer(
   state: GuidedCheckInState,
   action: GuidedCheckInAction
 ): GuidedCheckInState {
   switch (action.type) {
+    case "set-session-key":
+      return {
+        ...state,
+        sessionKey: action.sessionKey,
+      };
     case "set-profile":
       return {
         ...INITIAL_GUIDED_CHECKIN_STATE,
+        sessionKey: createSessionKey(),
         profileId: action.profileId,
         profileName: action.profileName,
       };
     case "set-zone":
       return {
         ...clearPersistedCheckin(state),
+        sessionKey: ensureSessionKey(state),
         startedAt: ensureStartedAt(state),
         zoneKey: action.zoneKey,
         intensity: state.intensity,
@@ -132,6 +153,7 @@ function guidedCheckInReducer(
     case "set-feeling":
       return {
         ...clearPersistedCheckin(state),
+        sessionKey: ensureSessionKey(state),
         startedAt: ensureStartedAt(state),
         feelingKey: action.feelingKey,
         feelingDetailKey: null,
@@ -143,6 +165,7 @@ function guidedCheckInReducer(
     case "set-feeling-detail":
       return {
         ...clearPersistedCheckin(state),
+        sessionKey: ensureSessionKey(state),
         startedAt: ensureStartedAt(state),
         feelingDetailKey: action.detailKey,
         feelingDetailLabel: action.detailLabel,
@@ -153,36 +176,42 @@ function guidedCheckInReducer(
     case "set-intensity":
       return {
         ...clearPersistedCheckin(state),
+        sessionKey: ensureSessionKey(state),
         startedAt: ensureStartedAt(state),
         intensity: action.intensity,
       };
     case "set-notes":
       return {
         ...clearPersistedCheckin(state),
+        sessionKey: ensureSessionKey(state),
         startedAt: ensureStartedAt(state),
         notes: action.notes,
       };
     case "toggle-body-clue":
       return {
         ...clearPersistedCheckin(state),
+        sessionKey: ensureSessionKey(state),
         startedAt: ensureStartedAt(state),
         bodyClueKeys: toggleValue(state.bodyClueKeys, action.bodyClueKey),
       };
     case "set-tool":
       return {
         ...clearPersistedCheckin(state),
+        sessionKey: ensureSessionKey(state),
         startedAt: ensureStartedAt(state),
         selectedToolKey: action.toolKey,
       };
     case "toggle-strategy":
       return {
         ...clearPersistedCheckin(state),
+        sessionKey: ensureSessionKey(state),
         startedAt: ensureStartedAt(state),
         selectedStrategyKeys: toggleValue(state.selectedStrategyKeys, action.strategyKey),
       };
     case "mark-completed":
       return {
         ...state,
+        sessionKey: ensureSessionKey(state),
         startedAt: ensureStartedAt(state),
         completed: Boolean(action.completedAt),
         completedAt: action.completedAt,
@@ -197,6 +226,7 @@ function guidedCheckInReducer(
     case "reset":
       return {
         ...INITIAL_GUIDED_CHECKIN_STATE,
+        sessionKey: createSessionKey(),
         profileId: state.profileId,
         profileName: state.profileName,
       };
@@ -228,6 +258,14 @@ export function GuidedCheckInProvider({ children, initialViewer }: GuidedCheckIn
       setHasHydratedFromStorage(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (!hasHydratedFromStorage || state.sessionKey) {
+      return;
+    }
+
+    dispatch({ type: "set-session-key", sessionKey: createSessionKey() });
+  }, [hasHydratedFromStorage, state.sessionKey]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !hasHydratedFromStorage) {

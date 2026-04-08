@@ -12,6 +12,7 @@ import { getToolByKey } from "@/lib/tools/registry";
 import type { CheckinBodyClue, CheckinStrategy, CheckinTool } from "@/types/checkins";
 
 export type CreateGuidedProfileCheckinInput = {
+  clientSessionKey: string;
   profileId: string;
   zoneKey: CheckinZoneKey;
   feelingLabel: string;
@@ -44,6 +45,63 @@ function isMissingSchemaSupport(error: unknown): boolean {
 
   const code = (error as { code?: string }).code;
   return code === "42703" || code === "42P01";
+}
+
+async function hasClientSessionKeySupport(client: PoolClient): Promise<boolean> {
+  const result = await client.query<{ has_column: boolean }>(
+    `
+      select exists (
+        select 1
+        from information_schema.columns
+        where table_schema = 'public'
+          and table_name = 'checkins'
+          and column_name = 'client_session_key'
+      ) as has_column
+    `
+  );
+
+  return result.rows[0]?.has_column === true;
+}
+
+async function findExistingGuidedCheckin(
+  client: PoolClient,
+  input: CreateGuidedProfileCheckinInput,
+  useClientSessionKey: boolean
+): Promise<{ id: string } | null> {
+  if (useClientSessionKey) {
+    const bySessionKeyResult = await client.query<{ id: string }>(
+      `
+        select id::text as id
+        from checkins
+        where client_session_key = $1
+        limit 1
+      `,
+      [input.clientSessionKey]
+    );
+
+    const existingBySessionKey = bySessionKeyResult.rows[0];
+
+    if (existingBySessionKey) {
+      return existingBySessionKey;
+    }
+  }
+
+  const byFingerprintResult = await client.query<{ id: string }>(
+    `
+      select id::text as id
+      from checkins
+      where profile_id = $1
+        and zone = $2
+        and feeling = $3
+        and started_at = $4::timestamptz
+        and completed_at is not distinct from $5::timestamptz
+      order by created_at desc
+      limit 1
+    `,
+    [input.profileId, input.zoneKey, input.feelingLabel, input.startedAt, input.completedAt]
+  );
+
+  return byFingerprintResult.rows[0] ?? null;
 }
 
 function normalizeStrategySelections(selectedStrategyKeys: readonly CheckinStrategyKey[]): CheckinStrategy[] {
@@ -133,8 +191,15 @@ async function insertLegacyGuidedProfileCheckin(
 
 async function insertRichGuidedProfileCheckin(
   client: PoolClient,
-  input: CreateGuidedProfileCheckinInput
+  input: CreateGuidedProfileCheckinInput,
+  useClientSessionKey: boolean
 ): Promise<{ id: string }> {
+  const existingCheckin = await findExistingGuidedCheckin(client, input, useClientSessionKey);
+
+  if (existingCheckin) {
+    return existingCheckin;
+  }
+
   const insertCheckinResult = await client.query<{ id: string }>(
     `
       insert into checkins (
@@ -145,23 +210,42 @@ async function insertRichGuidedProfileCheckin(
         notes,
         duration_seconds,
         completed,
+        ${useClientSessionKey ? "client_session_key," : ""}
         started_at,
         completed_at
       )
-      values ($1, $2, $3, $4, $5, $6, $7, $8::timestamptz, $9::timestamptz)
+      values (
+        $1, $2, $3, $4, $5, $6, $7,
+        ${useClientSessionKey ? "$8," : ""}
+        $${useClientSessionKey ? 9 : 8}::timestamptz,
+        $${useClientSessionKey ? 10 : 9}::timestamptz
+      )
       returning id::text as id
     `,
-    [
-      input.profileId,
-      input.zoneKey,
-      input.feelingLabel,
-      input.intensity,
-      input.notes,
-      input.durationSeconds,
-      input.completed,
-      input.startedAt,
-      input.completedAt,
-    ]
+    useClientSessionKey
+      ? [
+          input.profileId,
+          input.zoneKey,
+          input.feelingLabel,
+          input.intensity,
+          input.notes,
+          input.durationSeconds,
+          input.completed,
+          input.clientSessionKey,
+          input.startedAt,
+          input.completedAt,
+        ]
+      : [
+          input.profileId,
+          input.zoneKey,
+          input.feelingLabel,
+          input.intensity,
+          input.notes,
+          input.durationSeconds,
+          input.completed,
+          input.startedAt,
+          input.completedAt,
+        ]
   );
 
   const checkinId = insertCheckinResult.rows[0]?.id;
@@ -174,7 +258,13 @@ async function insertRichGuidedProfileCheckin(
     await client.query(
       `
         insert into checkin_body_clues (checkin_id, clue_key, category)
-        values ($1, $2, $3)
+        select $1, $2, $3
+        where not exists (
+          select 1
+          from checkin_body_clues
+          where checkin_id = $1
+            and clue_key = $2
+        )
       `,
       [checkinId, bodyClue.clueKey, bodyClue.category]
     );
@@ -184,7 +274,13 @@ async function insertRichGuidedProfileCheckin(
     await client.query(
       `
         insert into checkin_tools (checkin_id, tool_key, category)
-        values ($1, $2, $3)
+        select $1, $2, $3
+        where not exists (
+          select 1
+          from checkin_tools
+          where checkin_id = $1
+            and tool_key = $2
+        )
       `,
       [checkinId, tool.toolKey, tool.category]
     );
@@ -194,7 +290,13 @@ async function insertRichGuidedProfileCheckin(
     await client.query(
       `
         insert into checkin_strategies (checkin_id, strategy_key, category)
-        values ($1, $2, $3)
+        select $1, $2, $3
+        where not exists (
+          select 1
+          from checkin_strategies
+          where checkin_id = $1
+            and strategy_key = $2
+        )
       `,
       [checkinId, strategy.strategyKey, strategy.category]
     );
@@ -219,9 +321,10 @@ export async function createGuidedProfileCheckin(
 
   try {
     await client.query("begin");
+    const useClientSessionKey = await hasClientSessionKeySupport(client);
 
     try {
-      const result = await insertRichGuidedProfileCheckin(client, richInput);
+      const result = await insertRichGuidedProfileCheckin(client, richInput, useClientSessionKey);
       await client.query("commit");
       return result;
     } catch (error) {

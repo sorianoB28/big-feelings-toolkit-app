@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
   BookmarkCheck,
@@ -37,6 +37,7 @@ type CompletionSaveState = "idle" | "saving" | "saved" | "error";
 export function CheckInCompletionStep() {
   const router = useRouter();
   const { state, viewer, markCompleted, markPersistedCheckin, reset } = useGuidedCheckIn();
+  const persistAttemptKeyRef = useRef<string | null>(null);
   const [saveState, setSaveState] = useState<CompletionSaveState>(
     state.persistedCheckinId ? "saved" : "idle"
   );
@@ -53,19 +54,27 @@ export function CheckInCompletionStep() {
     profileId: state.profileId,
   });
   const completedWithoutSaving = !canPersistSelection;
-  const savedStrategyCards = [];
+  const selectedStrategyKeySet = useMemo(
+    () => new Set(state.selectedStrategyKeys),
+    [state.selectedStrategyKeys]
+  );
+  const savedStrategyCards = useMemo(() => {
+    const cards = [];
 
-  for (const strategyKey of state.selectedStrategyKeys) {
-    const card = strategyCardByKey.get(strategyKey);
+    for (const strategyKey of state.selectedStrategyKeys) {
+      const card = strategyCardByKey.get(strategyKey);
 
-    if (card) {
-      savedStrategyCards.push(card);
+      if (card) {
+        cards.push(card);
+      }
+
+      if (cards.length === 3) {
+        break;
+      }
     }
 
-    if (savedStrategyCards.length === 3) {
-      break;
-    }
-  }
+    return cards;
+  }, [state.selectedStrategyKeys]);
 
   const nextTimeSavedCards = useMemo(() => {
     const cards = [];
@@ -84,6 +93,28 @@ export function CheckInCompletionStep() {
 
     return cards;
   }, [savedStrategyKeys]);
+  const temporarySavedCards = useMemo(() => savedStrategyCards.slice(0, 4), [savedStrategyCards]);
+  const previouslySavedCards = useMemo(() => {
+    const cards = [];
+
+    for (const strategyKey of savedStrategyKeys) {
+      if (selectedStrategyKeySet.has(strategyKey)) {
+        continue;
+      }
+
+      const card = strategyCardByKey.get(strategyKey);
+
+      if (card) {
+        cards.push(card);
+      }
+
+      if (cards.length === 4) {
+        break;
+      }
+    }
+
+    return cards;
+  }, [savedStrategyKeys, selectedStrategyKeySet]);
 
   const selectedStrategyKeysForSave = useMemo(
     () => [...state.selectedStrategyKeys] as CheckinStrategyKey[],
@@ -121,6 +152,17 @@ export function CheckInCompletionStep() {
       return;
     }
 
+    if (!state.sessionKey) {
+      return;
+    }
+
+    const persistAttemptKey = `${state.sessionKey}:${state.profileId}:${completedAt}`;
+    if (persistAttemptKeyRef.current === persistAttemptKey) {
+      return;
+    }
+
+    persistAttemptKeyRef.current = persistAttemptKey;
+
     let isCancelled = false;
     const zoneKey = selectedZone.key;
 
@@ -134,6 +176,7 @@ export function CheckInCompletionStep() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
+            sessionKey: state.sessionKey,
             profileId: state.profileId,
             zoneKey,
             feelingLabel: selectedFeelingLabel,
@@ -185,6 +228,7 @@ export function CheckInCompletionStep() {
     state.notes,
     state.persistedCheckinId,
     state.profileId,
+    state.sessionKey,
     state.selectedToolKey,
   ]);
 
@@ -333,8 +377,9 @@ export function CheckInCompletionStep() {
                   <>
                     <p className="text-sm font-semibold text-dark">Completed locally</p>
                     <p className="mt-2 text-sm leading-6 text-slate-600">
-                      The check-in experience still finished normally. Sign in and choose a profile if
-                      you want future sessions saved to history.
+                      This check-in still finished normally. A parent, caregiver, or other adult can
+                      create an account and add a profile if you want future sessions and saved
+                      strategies stored long-term.
                     </p>
                   </>
                 ) : (
@@ -350,7 +395,7 @@ export function CheckInCompletionStep() {
                     </p>
                     <p className="mt-2 text-sm leading-6 text-slate-600">
                       {saveState === "saved"
-                        ? "Zone, feeling, body clues, tools, timing, notes, and selected strategies were saved."
+                        ? "Zone, feeling, body clues, tools, timing, notes, and the strategies from this check-in were saved."
                         : saveState === "saving"
                           ? "Writing the completed session in the background."
                           : saveState === "error"
@@ -370,6 +415,16 @@ export function CheckInCompletionStep() {
                 Completed check-ins can now store the fuller session context, including body clues,
                 tool use, strategies, optional notes, and time spent in the flow.
               </p>
+              {canPersistSelection && state.profileId ? (
+                <div className="mt-5">
+                  <Link
+                    href={`/strategies/saved?profileId=${encodeURIComponent(state.profileId)}`}
+                    className={toolkitButtonSecondaryClass}
+                  >
+                    View previously saved strategies
+                  </Link>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
@@ -477,16 +532,19 @@ export function CheckInCompletionStep() {
             <div className="flex items-center gap-2 text-primary-dark">
               <BookmarkCheck className="h-4 w-4" />
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
-                Your saved strategies for next time
+                {canPersistSelection
+                  ? "Your saved strategies for next time"
+                  : "Strategies you picked in this check-in"}
               </p>
             </div>
             <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">
-              Keep a few trusted ideas close so the next check-in can start with supports you
-              already know tend to help.
+              {canPersistSelection
+                ? "Keep a few trusted ideas close so the next check-in can start with supports you already know tend to help."
+                : "These ideas stay visible for this summary only. A parent or other adult can create an account and add a profile to save them long-term."}
             </p>
           </div>
 
-          {state.profileId ? (
+          {canPersistSelection && state.profileId ? (
             <Link
               href={`/strategies/saved?profileId=${encodeURIComponent(state.profileId)}`}
               className={toolkitButtonSecondaryClass}
@@ -496,15 +554,15 @@ export function CheckInCompletionStep() {
           ) : null}
         </div>
 
-        {nextTimeSavedCards.length > 0 ? (
+        {(canPersistSelection ? nextTimeSavedCards : temporarySavedCards).length > 0 ? (
           <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            {nextTimeSavedCards.map((card) => (
+            {(canPersistSelection ? nextTimeSavedCards : temporarySavedCards).map((card) => (
               <div
                 key={card.key}
                 className="rounded-[1.3rem] border border-primary/14 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,248,255,0.95))] px-4 py-4 shadow-[0_20px_40px_-32px_rgba(79,140,255,0.24)]"
               >
                 <span className="rounded-full border border-primary/14 bg-primary/8 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-dark">
-                  Saved by you
+                  {canPersistSelection ? "Saved to profile" : "Saved for this summary"}
                 </span>
                 <p className="mt-3 text-base font-semibold text-dark">{card.title}</p>
                 <p className="mt-2 text-sm leading-6 text-slate-600">{card.description}</p>
@@ -513,13 +571,35 @@ export function CheckInCompletionStep() {
           </div>
         ) : (
           <div className="mt-5 rounded-[1.25rem] border border-white/72 bg-white/84 px-4 py-4 shadow-sm">
-            <p className="text-sm font-semibold text-dark">No saved strategies yet</p>
+            <p className="text-sm font-semibold text-dark">
+              {canPersistSelection ? "No saved strategies yet" : "No temporary saved strategies yet"}
+            </p>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Save a few strategies during the check-in flow or from the strategies library and
-              they will show up here the next time.
+              {canPersistSelection
+                ? "Save a few strategies during the check-in flow or from the strategies library and they will show up here the next time."
+                : "Choose a few strategies during the check-in flow and they will stay visible on this summary screen until you leave the session."}
             </p>
           </div>
         )}
+
+        {canPersistSelection && previouslySavedCards.length > 0 ? (
+          <div className="mt-5 rounded-[1.25rem] border border-white/72 bg-white/84 px-4 py-4 shadow-sm">
+            <p className="text-sm font-semibold text-dark">Previously saved for this profile</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              These were already saved before this check-in and are still available the next time you come back.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {previouslySavedCards.map((card) => (
+                <span
+                  key={card.key}
+                  className="rounded-full border border-primary/14 bg-primary/8 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-primary-dark"
+                >
+                  {card.title}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </section>
     </div>
   );

@@ -32,6 +32,7 @@ export type ToolDefinition = {
   description: string;
   durationSeconds: number;
   hasProgress: boolean;
+  isSelfPaced?: boolean;
   experiences?: ToolExperience[];
   loadComponent: () => Promise<{ default: ToolComponent }>;
 };
@@ -185,8 +186,9 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     title: "Ask for Help",
     category: "get_support",
     description: "Practice a short, clear way to ask for support.",
-    durationSeconds: 90,
+    durationSeconds: 0,
     hasProgress: false,
+    isSelfPaced: true,
     loadComponent: () => import("@/components/tools/exercises/ask-for-help-tool"),
   },
 ];

@@ -36,6 +36,7 @@ type ToolRunnerProps = {
   description: string;
   durationSeconds: number;
   hasProgress: boolean;
+  isSelfPaced: boolean;
   ToolComponent: ComponentType<ToolRuntimeProps>;
   from?: string | null;
   zone?: string | null;
@@ -156,6 +157,7 @@ export function ToolRunner({
   description,
   durationSeconds,
   hasProgress,
+  isSelfPaced,
   ToolComponent,
   from = null,
   zone = null,
@@ -231,22 +233,30 @@ export function ToolRunner({
   const [isSavingToolUse, setIsSavingToolUse] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const isComplete = elapsedSeconds >= durationSeconds;
+  const isComplete = !isSelfPaced && elapsedSeconds >= durationSeconds;
   const durationMs = Math.max(0, durationSeconds * 1000);
   const clampedVisualElapsedMs = Math.min(visualElapsedMs, durationMs);
   const displayElapsedSeconds = Math.floor(clampedVisualElapsedMs / 1000);
   const remainingSeconds = Math.max(0, durationSeconds - displayElapsedSeconds);
 
   useEffect(() => {
+    if (isSelfPaced) {
+      return;
+    }
+
     if (elapsedSeconds === 0) {
       setVisualElapsedMs(0);
       return;
     }
 
     setVisualElapsedMs((current) => Math.max(current, Math.min(elapsedSeconds * 1000, durationMs)));
-  }, [durationMs, elapsedSeconds]);
+  }, [durationMs, elapsedSeconds, isSelfPaced]);
 
   useEffect(() => {
+    if (isSelfPaced) {
+      return;
+    }
+
     if (!isRunning) {
       return;
     }
@@ -256,9 +266,13 @@ export function ToolRunner({
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, [durationSeconds, isRunning]);
+  }, [durationSeconds, isRunning, isSelfPaced]);
 
   useEffect(() => {
+    if (isSelfPaced) {
+      return;
+    }
+
     if (!isRunning || isFinished || isComplete) {
       return;
     }
@@ -285,7 +299,7 @@ export function ToolRunner({
         window.cancelAnimationFrame(frameId);
       }
     };
-  }, [durationMs, isComplete, isFinished, isRunning]);
+  }, [durationMs, isComplete, isFinished, isRunning, isSelfPaced]);
 
   useEffect(() => {
     if (isComplete && isRunning) {
@@ -304,6 +318,10 @@ export function ToolRunner({
   }, [isComplete, isFinished, toolStatus?.holdFinish]);
 
   const overallProgressPercent = useMemo(() => {
+    if (isSelfPaced) {
+      return 0;
+    }
+
     if (typeof toolStatus?.progressPercent === "number") {
       return Math.min(100, Math.max(0, toolStatus.progressPercent));
     }
@@ -313,7 +331,7 @@ export function ToolRunner({
     }
 
     return Math.min(100, (clampedVisualElapsedMs / durationMs) * 100);
-  }, [clampedVisualElapsedMs, durationMs, toolStatus?.progressPercent]);
+  }, [clampedVisualElapsedMs, durationMs, isSelfPaced, toolStatus?.progressPercent]);
 
   const phaseLabel = isFinished
     ? "Complete"
@@ -325,7 +343,9 @@ export function ToolRunner({
   const phaseDisplayLabel = isToolkitMode
     ? isFinished
       ? "Nice job"
-      : isRunning
+      : isSelfPaced
+        ? (toolStatus?.phaseLabel ?? "Complete when ready")
+        : isRunning
         ? (toolStatus?.phaseLabel ?? "Keep going")
         : elapsedSeconds === 0
           ? "Press Start when you're ready"
@@ -342,12 +362,12 @@ export function ToolRunner({
   const runnerGhostButtonClass = isToolkitMode ? toolkitButtonGhostClass : buttonSecondaryClass;
   const progressHeadline = isToolkitMode ? "Your calm progress" : "Overall progress";
   const runtimeProgressPercent = useMemo(() => {
-    if (durationSeconds <= 0) {
+    if (isSelfPaced || durationSeconds <= 0) {
       return 0;
     }
 
     return Math.min(100, Math.round((elapsedSeconds / durationSeconds) * 100));
-  }, [durationSeconds, elapsedSeconds]);
+  }, [durationSeconds, elapsedSeconds, isSelfPaced]);
   const displayedCyclePercent = hasCycleProgress ? normalizeProgressValue(cycleProgressPercent) : 0;
   const cycleSummaryLabel = hasCycleProgress
     ? (toolStatus?.cycleLabel ?? "Cycle progress")
@@ -355,9 +375,9 @@ export function ToolRunner({
       ? "Ready"
       : phaseLabel;
   const headerSummaryItems = [
-    { label: "Session", value: formatClock(durationSeconds) },
+    ...(isSelfPaced ? [{ label: "Pace", value: "Self-paced" }] : [{ label: "Session", value: formatClock(durationSeconds) }]),
     { label: "Status", value: phaseDisplayLabel },
-    { label: "Time left", value: formatClock(remainingSeconds) },
+    ...(isSelfPaced ? [] : [{ label: "Time left", value: formatClock(remainingSeconds) }]),
     ...(hasProgress && toolStatus?.cycleLabel
       ? [{ label: "Cycle", value: toolStatus.cycleLabel }]
       : []),
@@ -670,13 +690,15 @@ export function ToolRunner({
 
                       <div className="mt-4 rounded-[1.25rem] border border-white/80 bg-[linear-gradient(135deg,rgba(79,140,255,0.12),rgba(124,108,255,0.1),rgba(255,255,255,0.86))] px-4 py-4 shadow-[0_16px_30px_-28px_rgba(79,140,255,0.24)]">
                         <p className="text-primary-dark/72 text-[11px] font-semibold uppercase tracking-[0.18em]">
-                          Time left
+                          {isSelfPaced ? "Flow" : "Time left"}
                         </p>
                         <p className="mt-2 text-[1.75rem] font-semibold tracking-[-0.04em] text-dark">
-                          {formatClock(remainingSeconds)}
+                          {isSelfPaced ? "Finish when ready" : formatClock(remainingSeconds)}
                         </p>
                         <p className="mt-1 text-sm leading-6 text-slate-600">
-                          Stay with the prompt. Pause or reset any time.
+                          {isSelfPaced
+                            ? "Build the words you want, then continue when the prompt feels ready."
+                            : "Stay with the prompt. Pause or reset any time."}
                         </p>
                       </div>
 
@@ -838,38 +860,43 @@ export function ToolRunner({
               >
                 <div
                   className={cn(
-                    "grid gap-3 rounded-[1.9rem] border border-white/70 bg-white/80 p-3 shadow-[0_24px_48px_-32px_rgba(15,23,42,0.28)] backdrop-blur sm:grid-cols-2 sm:p-4 xl:grid-cols-4",
+                    "grid gap-3 rounded-[1.9rem] border border-white/70 bg-white/80 p-3 shadow-[0_24px_48px_-32px_rgba(15,23,42,0.28)] backdrop-blur sm:p-4",
+                    isSelfPaced ? "sm:grid-cols-1 xl:grid-cols-1" : "sm:grid-cols-2 xl:grid-cols-4",
                     isToolkitMode &&
                       "bg-white/88 border-white/80 shadow-[0_24px_48px_-34px_rgba(79,140,255,0.24)]"
                   )}
                 >
-                  <MotionButton
-                    type="button"
-                    onClick={handleStart}
-                    disabled={isRunning}
-                    className={`${runnerPrimaryButtonClass} min-h-12 w-full gap-2 disabled:opacity-55`}
-                  >
-                    <Play className="h-4 w-4" />
-                    {startButtonLabel}
-                  </MotionButton>
-                  <MotionButton
-                    type="button"
-                    onClick={handlePause}
-                    disabled={!isRunning}
-                    className={`${runnerSecondaryButtonClass} min-h-12 w-full gap-2 disabled:opacity-55`}
-                  >
-                    <Pause className="h-4 w-4" />
-                    Pause
-                  </MotionButton>
-                  <MotionButton
-                    type="button"
-                    onClick={handleReset}
-                    disabled={!isRunning && elapsedSeconds === 0}
-                    className={`${runnerSecondaryButtonClass} min-h-12 w-full gap-2 disabled:opacity-55`}
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    Reset
-                  </MotionButton>
+                  {!isSelfPaced ? (
+                    <>
+                      <MotionButton
+                        type="button"
+                        onClick={handleStart}
+                        disabled={isRunning}
+                        className={`${runnerPrimaryButtonClass} min-h-12 w-full gap-2 disabled:opacity-55`}
+                      >
+                        <Play className="h-4 w-4" />
+                        {startButtonLabel}
+                      </MotionButton>
+                      <MotionButton
+                        type="button"
+                        onClick={handlePause}
+                        disabled={!isRunning}
+                        className={`${runnerSecondaryButtonClass} min-h-12 w-full gap-2 disabled:opacity-55`}
+                      >
+                        <Pause className="h-4 w-4" />
+                        Pause
+                      </MotionButton>
+                      <MotionButton
+                        type="button"
+                        onClick={handleReset}
+                        disabled={!isRunning && elapsedSeconds === 0}
+                        className={`${runnerSecondaryButtonClass} min-h-12 w-full gap-2 disabled:opacity-55`}
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                        Reset
+                      </MotionButton>
+                    </>
+                  ) : null}
                   <MotionButton
                     type="button"
                     onClick={handleBack}

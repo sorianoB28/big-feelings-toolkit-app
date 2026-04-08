@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Bookmark, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -55,18 +55,18 @@ function orderCardsForCategory(
 type StrategyCardPanelProps = {
   card: CheckinStrategyCard;
   showRelevantBadge?: boolean;
-  isSaved: boolean;
+  isSelected: boolean;
+  isPersisted?: boolean;
   isPending?: boolean;
-  savedBadgeLabel?: string;
   onToggleSaved: () => void;
 };
 
 function StrategyCardPanel({
   card,
   showRelevantBadge = false,
-  isSaved,
+  isSelected,
+  isPersisted = false,
   isPending = false,
-  savedBadgeLabel = "Saved by you",
   onToggleSaved,
 }: StrategyCardPanelProps) {
   const prefersReducedMotion = useReducedMotion();
@@ -78,7 +78,7 @@ function StrategyCardPanel({
       className={cn(
         "relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-white/72 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,248,255,0.95))] shadow-[0_24px_48px_-36px_rgba(79,140,255,0.24)]",
         showRelevantBadge && "border-primary/24 shadow-[0_28px_56px_-38px_rgba(79,140,255,0.32)]",
-        isSaved && "ring-2 ring-primary/12"
+        (isSelected || isPersisted) && "ring-2 ring-primary/12"
       )}
     >
       <div className="relative shrink-0 p-3">
@@ -91,11 +91,6 @@ function StrategyCardPanel({
           {showRelevantBadge ? (
             <div className="rounded-full bg-primary-dark px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white shadow-sm">
               Relevant now
-            </div>
-          ) : null}
-          {isSaved ? (
-            <div className="rounded-full border border-primary/18 bg-white/92 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-dark shadow-sm">
-              {savedBadgeLabel}
             </div>
           ) : null}
         </div>
@@ -112,7 +107,7 @@ function StrategyCardPanel({
             </h3>
           </div>
 
-          {isSaved ? <CheckCircle2 className="mt-1 h-5 w-5 text-primary-dark" /> : null}
+          {isSelected || isPersisted ? <CheckCircle2 className="mt-1 h-5 w-5 text-primary-dark" /> : null}
         </div>
 
         <div className="mt-4 flex-1 space-y-4 text-sm leading-6 text-slate-600">
@@ -134,20 +129,26 @@ function StrategyCardPanel({
         <motion.button
           type="button"
           onClick={onToggleSaved}
-          aria-pressed={isSaved}
-          aria-label={isSaved ? `Remove ${card.title} from saved strategies` : `Save ${card.title} to saved strategies`}
+          aria-pressed={isSelected}
+          aria-label={isSelected ? `Remove ${card.title} from this check-in selection` : `Save ${card.title} for next time`}
           whileTap={prefersReducedMotion || isPending ? undefined : { scale: 0.985 }}
           disabled={isPending}
           className={cn(
             "toolkit-focus-ring mt-5 inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition duration-[220ms] ease-out",
             isPending && "cursor-wait opacity-80",
-            isSaved
+            isSelected
               ? "border-primary/24 bg-primary/10 text-primary-dark shadow-[0_16px_34px_-26px_rgba(79,140,255,0.34)] hover:bg-primary/12"
               : "border-white/75 bg-white/84 text-dark hover:-translate-y-0.5 hover:bg-white"
           )}
         >
           {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bookmark className="h-4 w-4" />}
-          {isPending ? "Updating..." : isSaved ? "Saved" : "Keep this idea"}
+          {isPending
+            ? "Updating..."
+            : isSelected
+              ? "Selected"
+              : isPersisted
+                ? "Keep for this check-in"
+                : "Save for next time"}
         </motion.button>
       </div>
     </motion.article>
@@ -170,6 +171,7 @@ export function MoreStrategiesStep() {
     enabled: canPersistSavedStrategies,
     profileId: state.profileId,
   });
+  const baselineSavedStrategyKeysRef = useRef<Set<string> | null>(null);
 
   const selectedZone = CHECKIN_ZONES.find((zone) => zone.key === state.zoneKey) ?? null;
   const selectedFeelingLabel =
@@ -290,6 +292,18 @@ export function MoreStrategiesStep() {
   const savedIdeaCount = canPersistSavedStrategies
     ? savedStrategyKeys.length
     : state.selectedStrategyKeys.length;
+  const sessionSelectedStrategyKeySet = useMemo(
+    () => new Set(state.selectedStrategyKeys),
+    [state.selectedStrategyKeys]
+  );
+
+  useEffect(() => {
+    if (!canPersistSavedStrategies || baselineSavedStrategyKeysRef.current !== null || isLoadingSavedStrategies) {
+      return;
+    }
+
+    baselineSavedStrategyKeysRef.current = new Set(savedStrategyKeys);
+  }, [canPersistSavedStrategies, isLoadingSavedStrategies, savedStrategyKeys]);
 
   function handleStartOver() {
     reset();
@@ -297,7 +311,7 @@ export function MoreStrategiesStep() {
   }
 
   async function handleToggleSaved(card: CheckinStrategyCard) {
-    const isAlreadySaved = savedStrategyKeySet.has(card.key);
+    const isSelectedInSession = sessionSelectedStrategyKeySet.has(card.key);
 
     if (!canPersistSavedStrategies || !state.profileId) {
       toggleStrategy(card.key);
@@ -308,24 +322,24 @@ export function MoreStrategiesStep() {
       return;
     }
 
-    const isSelectedInSession = state.selectedStrategyKeys.includes(card.key);
-    const didChangeSessionSelection =
-      (isAlreadySaved && isSelectedInSession) || (!isAlreadySaved && !isSelectedInSession);
+    const nextSelectedInSession = !isSelectedInSession;
+    const baselineSavedStrategyKeys = baselineSavedStrategyKeysRef.current ?? new Set(savedStrategyKeys);
+    const wasPersistedBeforeThisCheckin = baselineSavedStrategyKeys.has(card.key);
 
-    if (didChangeSessionSelection) {
-      toggleStrategy(card.key);
-    }
+    toggleStrategy(card.key);
 
     try {
-      const result = await setSavedState(card.key, card.category, !isAlreadySaved);
+      const result = await setSavedState(
+        card.key,
+        card.category,
+        nextSelectedInSession || wasPersistedBeforeThisCheckin
+      );
 
-      if (!result.ok && didChangeSessionSelection) {
+      if (!result.ok) {
         toggleStrategy(card.key);
       }
     } catch {
-      if (didChangeSessionSelection) {
-        toggleStrategy(card.key);
-      }
+      toggleStrategy(card.key);
     }
   }
 
@@ -405,21 +419,19 @@ export function MoreStrategiesStep() {
           ) : null}
 
           <p className="mt-4 text-sm leading-6 text-slate-600">
-            Save the ideas that feel useful now so they stay easy to spot while you browse.
+            Choose the ideas you want to keep from this check-in so they stay easy to spot on the completion screen.
           </p>
           {canPersistSavedStrategies ? (
             <p className="mt-4 text-sm leading-6 text-slate-600">
-              Saved ideas stay attached to {state.profileName ?? "this profile"} and reload the next
-              time you come back.
+              Saved ideas stay attached to {state.profileName ?? "this profile"} and show up again in saved strategies and check-in history.
             </p>
           ) : needsProfileSelection ? (
             <p className="mt-4 text-sm leading-6 text-slate-600">
-              Choose a profile before saving if you want these ideas to stay attached to someone on
-              your account.
+              Choose a profile before saving if you want these ideas to stay attached to someone on your account.
             </p>
           ) : (
             <p className="mt-4 text-sm leading-6 text-slate-600">
-              Sign in and choose a profile if you want saved ideas to stick beyond this session.
+              These picks stay only in this check-in summary unless a parent, caregiver, or other adult signs in and saves them to a profile.
             </p>
           )}
           {needsProfileSelection ? (
@@ -503,12 +515,12 @@ export function MoreStrategiesStep() {
                   key={card.key}
                   card={card}
                   showRelevantBadge={recommendedStrategyKeySet.has(card.key)}
-                  isSaved={savedStrategyKeySet.has(card.key)}
+                  isSelected={sessionSelectedStrategyKeySet.has(card.key)}
+                  isPersisted={savedStrategyKeySet.has(card.key)}
                   isPending={
                     pendingStrategyKeySet.has(card.key) ||
                     (canPersistSavedStrategies && isLoadingSavedStrategies)
                   }
-                  savedBadgeLabel="Your go-to"
                   onToggleSaved={() => handleToggleSaved(card)}
                 />
               ))}
@@ -600,12 +612,12 @@ export function MoreStrategiesStep() {
                   <StrategyCardPanel
                     key={card.key}
                     card={card}
-                    isSaved={savedStrategyKeySet.has(card.key)}
+                    isSelected={sessionSelectedStrategyKeySet.has(card.key)}
+                    isPersisted={savedStrategyKeySet.has(card.key)}
                     isPending={
                       pendingStrategyKeySet.has(card.key) ||
                       (canPersistSavedStrategies && isLoadingSavedStrategies)
                     }
-                    savedBadgeLabel="Saved by you"
                     onToggleSaved={() => handleToggleSaved(card)}
                   />
                 ))}

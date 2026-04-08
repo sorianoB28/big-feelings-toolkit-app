@@ -111,8 +111,8 @@ export async function listProfilesForUser(userId: string): Promise<AccountProfil
         p.id::text as id,
         p.name,
         p.avatar,
-        count(c.id)::int as checkin_count,
-        max(c.created_at)::text as last_checkin_at
+        count(distinct c.id)::int as checkin_count,
+        max(coalesce(c.completed_at, c.created_at))::text as last_checkin_at
       from profiles p
       left join checkins c on c.profile_id = p.id
       where p.user_id = $1
@@ -192,8 +192,8 @@ export async function getProfileDetailForUser(
         p.id::text as id,
         p.name,
         p.avatar,
-        count(c.id)::int as checkin_count,
-        max(c.created_at)::text as last_checkin_at
+        count(distinct c.id)::int as checkin_count,
+        max(coalesce(c.completed_at, c.created_at))::text as last_checkin_at
       from profiles p
       left join checkins c on c.profile_id = p.id
       where p.user_id = $1
@@ -220,12 +220,12 @@ export async function getProfileDetailForUser(
           jsonb_agg(cs.strategy_key order by cs.created_at asc) filter (where cs.id is not null),
           '[]'::jsonb
         ) as strategy_keys,
-        c.created_at::text as created_at
+        coalesce(c.completed_at, c.created_at)::text as created_at
       from checkins c
       left join checkin_strategies cs on cs.checkin_id = c.id
       where c.profile_id = $1
-      group by c.id, c.zone, c.feeling, c.created_at
-      order by c.created_at desc
+      group by c.id, c.zone, c.feeling, c.created_at, c.completed_at
+      order by coalesce(c.completed_at, c.created_at) desc
     `,
     [profileId]
   );

@@ -55,6 +55,7 @@ export type GuidedCheckInViewer = {
 };
 
 export type GuidedCheckInState = {
+  sessionKey: string | null;
   profileId: string | null;
   profileName: string | null;
   startedAt: string | null;
@@ -73,6 +74,7 @@ export type GuidedCheckInState = {
 };
 
 export const INITIAL_GUIDED_CHECKIN_STATE: GuidedCheckInState = {
+  sessionKey: null,
   profileId: null,
   profileName: null,
   startedAt: null,

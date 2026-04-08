@@ -55,30 +55,6 @@ export async function saveStrategyForProfile(input: {
   strategyKey: CheckinStrategyKey;
   category: CheckinStrategyCategoryKey | null;
 }): Promise<{ strategy: ProfileSavedStrategy; created: boolean }> {
-  const insertResult = await db.query<ProfileSavedStrategyRow>(
-    `
-      insert into profile_saved_strategies (profile_id, strategy_key, category)
-      values ($1, $2, $3)
-      on conflict (profile_id, strategy_key) do nothing
-      returning
-        id::text as id,
-        profile_id::text as profile_id,
-        strategy_key,
-        category,
-        created_at::text as created_at
-    `,
-    [input.profileId, input.strategyKey, input.category]
-  );
-
-  const inserted = insertResult.rows[0];
-
-  if (inserted) {
-    return {
-      strategy: mapRow(inserted),
-      created: true,
-    };
-  }
-
   const existingResult = await db.query<ProfileSavedStrategyRow>(
     `
       select
@@ -97,12 +73,71 @@ export async function saveStrategyForProfile(input: {
 
   const existing = existingResult.rows[0];
 
-  if (!existing) {
+  if (existing) {
+    return {
+      strategy: mapRow(existing),
+      created: false,
+    };
+  }
+
+  try {
+    const insertResult = await db.query<ProfileSavedStrategyRow>(
+      `
+        insert into profile_saved_strategies (profile_id, strategy_key, category)
+        values ($1, $2, $3)
+        returning
+          id::text as id,
+          profile_id::text as profile_id,
+          strategy_key,
+          category,
+          created_at::text as created_at
+      `,
+      [input.profileId, input.strategyKey, input.category]
+    );
+
+    const inserted = insertResult.rows[0];
+
+    if (inserted) {
+      return {
+        strategy: mapRow(inserted),
+        created: true,
+      };
+    }
+  } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code?: string }).code !== "23505"
+    ) {
+      throw error;
+    }
+  }
+
+  const existingAfterInsertResult = await db.query<ProfileSavedStrategyRow>(
+    `
+      select
+        id::text as id,
+        profile_id::text as profile_id,
+        strategy_key,
+        category,
+        created_at::text as created_at
+      from profile_saved_strategies
+      where profile_id = $1
+        and strategy_key = $2
+      limit 1
+    `,
+    [input.profileId, input.strategyKey]
+  );
+
+  const existingAfterInsert = existingAfterInsertResult.rows[0];
+
+  if (!existingAfterInsert) {
     throw new Error("Unable to save strategy.");
   }
 
   return {
-    strategy: mapRow(existing),
+    strategy: mapRow(existingAfterInsert),
     created: false,
   };
 }
