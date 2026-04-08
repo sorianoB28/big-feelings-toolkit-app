@@ -13,6 +13,7 @@ import {
   toolkitButtonGhostClass,
   toolkitButtonPrimaryClass,
 } from "@/components/ui/form-styles";
+import { normalizeAuthNavigationUrl } from "@/lib/auth/client-navigation";
 import { getSignInErrorMessage } from "@/lib/auth/sign-in-errors";
 import { cn } from "@/lib/utils";
 
@@ -193,7 +194,7 @@ export function AuthExperience({
       }
 
       setSubmitSuccess(mode === "create" ? "Account created. Redirecting..." : "Signing you in...");
-      router.replace(result.url);
+      router.replace(normalizeAuthNavigationUrl(result.url, callbackUrl));
     } catch {
       setSubmitSuccess("");
       setSubmitError(

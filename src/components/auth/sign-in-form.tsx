@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/form-styles";
 import { FlashToast } from "@/components/ui/flash-toast";
 import { MotionButton } from "@/components/ui/motion-primitives";
+import { normalizeAuthNavigationUrl } from "@/lib/auth/client-navigation";
 import { getSignInErrorMessage } from "@/lib/auth/sign-in-errors";
 
 type SignInFormProps = {
@@ -61,7 +62,7 @@ export function SignInForm({
         return;
       }
 
-      window.location.href = result.url;
+      window.location.assign(normalizeAuthNavigationUrl(result.url, callbackUrl));
     } catch {
       setError("Sign-in is temporarily unavailable. Please try again.");
       setIsSubmitting(false);
