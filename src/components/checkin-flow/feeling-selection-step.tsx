@@ -31,12 +31,12 @@ function getBroadFeelingOptions(zoneKey: string | null): CheckinFeeling[] {
   return CHECKIN_FEELINGS.filter((feeling) => feeling.zoneKey === zoneKey);
 }
 
-function getHelperCopy(feeling: CheckinFeeling, detailGroup: CheckinFeelingGroup | null): string {
+function getHelperCopy(detailGroup: CheckinFeelingGroup | null): string | null {
   if (detailGroup) {
     return "Choose the broad feeling first, then pick a more specific word that fits best.";
   }
 
-  return "This word may already be specific enough, so the next choice can simply confirm it.";
+  return null;
 }
 
 export function FeelingSelectionStep() {
@@ -166,6 +166,7 @@ export function FeelingSelectionStep() {
           {broadFeelingOptions.map((feeling) => {
             const detailGroup = feeling.groupKey ? feelingGroupByKey.get(feeling.groupKey) ?? null : null;
             const isActive = activeBroadFeeling?.key === feeling.key;
+            const helperCopy = getHelperCopy(detailGroup);
             const previewLabels = detailGroup?.feelings.slice(0, 3).map((item) => item.label) ?? [];
 
             return (
@@ -198,11 +199,11 @@ export function FeelingSelectionStep() {
                   ) : null}
                 </div>
 
-                <p className="mt-4 text-sm leading-6 text-slate-600">
-                  {getHelperCopy(feeling, detailGroup)}
-                </p>
+                {helperCopy ? (
+                  <p className="mt-4 text-sm leading-6 text-slate-600">{helperCopy}</p>
+                ) : null}
 
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className={`${helperCopy ? "mt-4" : "mt-5"} flex flex-wrap gap-2`}>
                   {previewLabels.length > 0 ? (
                     previewLabels.map((label) => (
                       <span

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import Image from "next/image";
 import type { ToolRuntimeProps } from "@/lib/tools/registry";
 
 const PUSH_PHASE_SECONDS = 5;
@@ -24,7 +24,6 @@ export default function WallPushTool({
   onFinish,
   onStatusChange,
 }: ToolRuntimeProps) {
-  const prefersReducedMotion = useReducedMotion();
   const [completedPushes, setCompletedPushes] = useState("");
 
   const totalDurationSeconds = Math.max(1, durationSeconds);
@@ -43,8 +42,6 @@ export default function WallPushTool({
   const cycleProgressPercent = clampProgress((cycleElapsedMs / (ROUND_SECONDS * 1000)) * 100);
   const overallProgressPercent = clampProgress((elapsedMs / totalDurationMs) * 100);
   const sessionComplete = elapsedSeconds >= durationSeconds;
-  const figurePose = isPushPhase ? -18 : 0;
-  const armScale = isPushPhase ? 1.02 : 0.96;
 
   useEffect(() => {
     onStatusChange?.({
@@ -108,70 +105,19 @@ export default function WallPushTool({
           </span>
         </div>
 
-        <div className="relative mt-5 flex min-h-[15rem] items-end justify-center overflow-hidden rounded-[1.4rem] border border-white/70 bg-[linear-gradient(180deg,rgba(96,165,250,0.08),rgba(255,255,255,0.92))] px-6 py-6">
-          <div className="pointer-events-none absolute inset-x-6 bottom-5 h-px bg-slate-200" />
-          <div className="pointer-events-none absolute right-8 top-5 h-[78%] w-4 rounded-full bg-[linear-gradient(180deg,rgba(148,163,184,0.9),rgba(203,213,225,0.8))]" />
-
-          <motion.div
-            className="relative flex w-44 items-end justify-end"
-            animate={
-              prefersReducedMotion
-                ? undefined
-                : sessionComplete
-                  ? { x: 0 }
-                  : { x: isPushPhase ? figurePose : 0 }
-            }
-            transition={prefersReducedMotion ? undefined : { duration: 0.45, ease: "easeInOut" }}
-          >
-            <div className="absolute bottom-[7.6rem] right-[6.9rem] h-10 w-10 rounded-full border border-primary/20 bg-[linear-gradient(145deg,rgba(96,165,250,0.22),rgba(124,108,255,0.18))]" />
-            <div className="absolute bottom-[3.5rem] right-[5.3rem] h-[4.4rem] w-12 rounded-b-[1.1rem] rounded-t-[1.5rem] bg-[linear-gradient(180deg,rgba(96,165,250,0.18),rgba(124,108,255,0.12))]" />
-
-            <motion.div
-              className="absolute bottom-[5.7rem] right-[1.9rem] h-3 w-[4.8rem] origin-right rounded-full bg-primary/35"
-              animate={
-                prefersReducedMotion
-                  ? undefined
-                  : sessionComplete
-                    ? { scaleX: 1, rotate: 0 }
-                    : { scaleX: armScale, rotate: isPushPhase ? -6 : 0 }
-              }
-              transition={prefersReducedMotion ? undefined : { duration: 0.45, ease: "easeInOut" }}
+        <div className="relative mt-5 overflow-hidden rounded-[1.4rem] border border-white/70 bg-[linear-gradient(180deg,rgba(96,165,250,0.08),rgba(255,255,255,0.92))] px-4 py-4">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-[linear-gradient(180deg,rgba(79,140,255,0.08),transparent)]" />
+          <div className="relative flex min-h-[15rem] items-center justify-center rounded-[1.1rem] bg-white/58">
+            <Image
+              src="/images/Wallpushup-CDC_strength_training_for_older_adults.gif"
+              alt="A person demonstrating a wall push exercise"
+              width={720}
+              height={480}
+              unoptimized
+              priority
+              className="h-auto max-h-[19rem] w-full max-w-[32rem] object-contain [-webkit-transform:scaleX(-1)] [transform:scaleX(-1)]"
             />
-            <motion.div
-              className="absolute bottom-[4.9rem] right-[1.8rem] h-3 w-[4.9rem] origin-right rounded-full bg-secondary/35"
-              animate={
-                prefersReducedMotion
-                  ? undefined
-                  : sessionComplete
-                    ? { scaleX: 1, rotate: 0 }
-                    : { scaleX: armScale, rotate: isPushPhase ? 6 : 0 }
-              }
-              transition={prefersReducedMotion ? undefined : { duration: 0.45, ease: "easeInOut" }}
-            />
-
-            <motion.div
-              className="absolute bottom-0 right-[5rem] h-[4.5rem] w-3 origin-top rounded-full bg-primary/30"
-              animate={
-                prefersReducedMotion
-                  ? undefined
-                  : sessionComplete
-                    ? { rotate: 0 }
-                    : { rotate: isPushPhase ? 8 : 0 }
-              }
-              transition={prefersReducedMotion ? undefined : { duration: 0.45, ease: "easeInOut" }}
-            />
-            <motion.div
-              className="absolute bottom-0 right-[3.5rem] h-[4.5rem] w-3 origin-top rounded-full bg-secondary/30"
-              animate={
-                prefersReducedMotion
-                  ? undefined
-                  : sessionComplete
-                    ? { rotate: 0 }
-                    : { rotate: isPushPhase ? -6 : 0 }
-              }
-              transition={prefersReducedMotion ? undefined : { duration: 0.45, ease: "easeInOut" }}
-            />
-          </motion.div>
+          </div>
         </div>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">

@@ -31,6 +31,16 @@ function getDurationLabel(durationSeconds: number): string {
   return `${minutes} min`;
 }
 
+function buildGuidedCheckinToolHref(toolKey: string): string {
+  const params = new URLSearchParams({
+    from: "check-in",
+    backTo: "/check-in/reset-tool",
+    returnTo: "/check-in/more-strategies",
+  });
+
+  return `/tools/${toolKey}?${params.toString()}`;
+}
+
 export function ResetToolStep() {
   const { state, setTool, viewer } = useGuidedCheckIn();
   const selectedZone = CHECKIN_ZONES.find((zone) => zone.key === state.zoneKey) ?? null;
@@ -102,11 +112,7 @@ export function ResetToolStep() {
   const selectedFeelingLabel =
     state.feelingDetailLabel ??
     (state.feelingKey ? feelingLabelByKey.get(state.feelingKey) ?? state.feelingKey : null);
-  const primaryToolHref = primaryTool
-    ? `/tools/${primaryTool.toolKey}?from=check-in&returnTo=${encodeURIComponent(
-        "/check-in/more-strategies"
-      )}`
-    : null;
+  const primaryToolHref = primaryTool ? buildGuidedCheckinToolHref(primaryTool.toolKey) : null;
 
   return (
     <div className="space-y-6">
@@ -266,9 +272,7 @@ export function ResetToolStep() {
             {alternateTools.map((tool) => (
               <ToolLibraryCard
                 key={tool.toolKey}
-                href={`/tools/${tool.toolKey}?from=check-in&returnTo=${encodeURIComponent(
-                  "/check-in/more-strategies"
-                )}`}
+                href={buildGuidedCheckinToolHref(tool.toolKey)}
                 onClick={() => setTool(tool.toolKey)}
                 toolKey={tool.toolKey}
                 title={tool.title}

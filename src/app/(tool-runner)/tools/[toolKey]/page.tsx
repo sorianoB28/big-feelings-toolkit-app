@@ -10,6 +10,7 @@ type ToolRunnerPageProps = {
     from?: string;
     zone?: string;
     intent?: string;
+    backTo?: string;
     returnTo?: string;
     checkinId?: string;
     studentId?: string;
@@ -25,6 +26,7 @@ export default function ToolRunnerPage({ params, searchParams }: ToolRunnerPageP
   const from = searchParams?.from ?? null;
   const zone = searchParams?.zone ?? null;
   const intent = searchParams?.intent ?? null;
+  const backTo = searchParams?.backTo?.trim() ?? null;
   const returnTo = searchParams?.returnTo?.trim() ?? null;
   const checkinId = searchParams?.checkinId?.trim() ?? null;
   const studentId = searchParams?.studentId?.trim() ?? null;
@@ -36,6 +38,7 @@ export default function ToolRunnerPage({ params, searchParams }: ToolRunnerPageP
       from={from}
       zone={zone}
       intent={intent}
+      backTo={backTo}
       returnTo={returnTo}
       checkinId={checkinId}
       studentId={studentId}

@@ -8,6 +8,7 @@ export type ToolRuntimeProps = {
   remainingSeconds: number;
   durationSeconds: number;
   progressPercent: number;
+  checkinId?: string | null;
   onFinish: () => void;
   onStatusChange?: (status: ToolRuntimeStatus | null) => void;
 };

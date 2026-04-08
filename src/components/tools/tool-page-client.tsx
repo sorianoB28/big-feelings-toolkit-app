@@ -14,6 +14,7 @@ type ToolPageClientProps = {
   from?: string | null;
   zone?: string | null;
   intent?: string | null;
+  backTo?: string | null;
   returnTo?: string | null;
   checkinId?: string | null;
   studentId?: string | null;
@@ -25,6 +26,7 @@ export function ToolPageClient({
   from = null,
   zone = null,
   intent = null,
+  backTo = null,
   returnTo = null,
   checkinId = null,
   studentId = null,
@@ -114,6 +116,7 @@ export function ToolPageClient({
       from={from}
       zone={zone}
       intent={intent}
+      backTo={backTo}
       returnTo={returnTo}
       checkinId={checkinId}
       studentId={studentId}

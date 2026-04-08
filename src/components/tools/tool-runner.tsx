@@ -40,6 +40,7 @@ type ToolRunnerProps = {
   from?: string | null;
   zone?: string | null;
   intent?: string | null;
+  backTo?: string | null;
   returnTo?: string | null;
   checkinId?: string | null;
   studentId?: string | null;
@@ -139,6 +140,7 @@ const ToolRuntimeStage = memo(
     previousProps.remainingSeconds === nextProps.remainingSeconds &&
     previousProps.durationSeconds === nextProps.durationSeconds &&
     previousProps.progressPercent === nextProps.progressPercent &&
+    previousProps.checkinId === nextProps.checkinId &&
     previousProps.onFinish === nextProps.onFinish &&
     previousProps.onStatusChange === nextProps.onStatusChange
 );
@@ -158,6 +160,7 @@ export function ToolRunner({
   from = null,
   zone = null,
   intent = null,
+  backTo = null,
   returnTo = null,
   checkinId = null,
   studentId = null,
@@ -192,6 +195,7 @@ export function ToolRunner({
   const hasCheckinContext =
     mode === "demo" && fromCheckin && safeCheckinId.length > 0 && safeStudentId.length > 0;
   const toolkitBackHref = from === "toolkit" ? "/toolkit" : "/tools";
+  const guidedBackHref = backTo?.trim() || "/check-in/reset-tool";
   const hasGuidedReturn = isToolkitMode && fromGuidedCheckin && Boolean(returnTo?.trim());
   const defaultBackHref = fromReset ? "/reset" : toolkitBackHref;
   const checkinToolsParams = new URLSearchParams({
@@ -376,6 +380,7 @@ export function ToolRunner({
       remainingSeconds,
       durationSeconds,
       progressPercent: runtimeProgressPercent,
+      checkinId: safeCheckinId || null,
       onFinish: handleToolFinish,
       onStatusChange: setToolStatus,
     }),
@@ -387,6 +392,7 @@ export function ToolRunner({
       isRunning,
       remainingSeconds,
       runtimeProgressPercent,
+      safeCheckinId,
     ]
   );
 
@@ -431,7 +437,7 @@ export function ToolRunner({
     }
 
     if (hasGuidedReturn && returnTo) {
-      router.push(returnTo);
+      router.push(guidedBackHref);
       return;
     }
 

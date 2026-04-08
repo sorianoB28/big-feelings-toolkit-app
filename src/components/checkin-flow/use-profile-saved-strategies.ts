@@ -16,8 +16,21 @@ type UseProfileSavedStrategiesInput = {
   initialSavedStrategyKeys?: CheckinStrategyKey[];
 };
 
+const EMPTY_SAVED_STRATEGY_KEYS: CheckinStrategyKey[] = [];
+
 function uniqueKeys<TKey extends string>(values: readonly TKey[]): TKey[] {
   return Array.from(new Set(values));
+}
+
+function areStrategyKeyListsEqual(
+  left: readonly CheckinStrategyKey[],
+  right: readonly CheckinStrategyKey[]
+): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  return left.every((key, index) => key === right[index]);
 }
 
 type SavedStrategyCacheEntry = {
@@ -95,7 +108,7 @@ async function fetchSavedStrategies(profileId: string): Promise<CheckinStrategyK
 export function useProfileSavedStrategies({
   enabled,
   profileId,
-  initialSavedStrategyKeys = [],
+  initialSavedStrategyKeys = EMPTY_SAVED_STRATEGY_KEYS,
 }: UseProfileSavedStrategiesInput) {
   const [savedStrategyKeys, setSavedStrategyKeys] = useState<CheckinStrategyKey[]>(() =>
     profileId
@@ -123,8 +136,12 @@ export function useProfileSavedStrategies({
 
   useEffect(() => {
     if (!enabled || !profileId) {
-      setSavedStrategyKeys([]);
-      setPendingStrategyKeys([]);
+      setSavedStrategyKeys((current) =>
+        current.length > 0 ? EMPTY_SAVED_STRATEGY_KEYS : current
+      );
+      setPendingStrategyKeys((current) =>
+        current.length > 0 ? EMPTY_SAVED_STRATEGY_KEYS : current
+      );
       setIsLoading(false);
       setError("");
       return;
@@ -135,11 +152,12 @@ export function useProfileSavedStrategies({
     const cachedKeys = readCachedSavedStrategies(currentProfileId);
     const shouldRefresh = getShouldRefreshCache(currentProfileId);
 
-    setSavedStrategyKeys(
-      uniqueKeys([
-        ...cachedKeys,
-        ...initialSavedStrategyKeys,
-      ])
+    const mergedSavedStrategyKeys = uniqueKeys([...cachedKeys, ...initialSavedStrategyKeys]);
+
+    setSavedStrategyKeys((current) =>
+      areStrategyKeyListsEqual(current, mergedSavedStrategyKeys)
+        ? current
+        : mergedSavedStrategyKeys
     );
     setError("");
 
@@ -158,7 +176,9 @@ export function useProfileSavedStrategies({
           return;
         }
 
-        setSavedStrategyKeys(nextSavedStrategyKeys);
+        setSavedStrategyKeys((current) =>
+          areStrategyKeyListsEqual(current, nextSavedStrategyKeys) ? current : nextSavedStrategyKeys
+        );
       } catch (nextError) {
         if (!isCancelled) {
           setError(
@@ -166,7 +186,9 @@ export function useProfileSavedStrategies({
               ? nextError.message
               : "Saved strategies could not be loaded right now."
           );
-          setSavedStrategyKeys(cachedKeys);
+          setSavedStrategyKeys((current) =>
+            areStrategyKeyListsEqual(current, cachedKeys) ? current : cachedKeys
+          );
         }
       } finally {
         if (!isCancelled) {

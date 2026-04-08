@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { saveGroundingToolActivityAction } from "@/app/(app)/tools/actions";
 import { buttonSecondaryClass } from "@/components/ui/form-styles";
 import type { ToolRuntimeProps } from "@/lib/tools/registry";
@@ -42,11 +41,10 @@ function normalizeEntry(raw: string): string {
 export default function Grounding54321Tool({
   isRunning,
   elapsedSeconds,
+  checkinId = null,
   onFinish,
   onStatusChange,
 }: ToolRuntimeProps) {
-  const searchParams = useSearchParams();
-  const checkinId = searchParams.get("checkinId");
   const [stepEntries, setStepEntries] = useState<StepEntries>(INITIAL_ENTRIES);
   const [stepInputs, setStepInputs] = useState<StepInputs>(INITIAL_INPUTS);
   const [isFinishing, setIsFinishing] = useState(false);

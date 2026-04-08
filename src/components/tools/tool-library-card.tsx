@@ -44,7 +44,7 @@ function ToolLibraryCardComponent({
     <MotionCard className="h-full" whileHover={{ y: -4, scale: 1.008 }}>
       <motion.div
         variants={fadeInUp}
-        initial="initial"
+        initial={false}
         animate="animate"
         className={cn(
           "toolkit-card-shell h-full",
