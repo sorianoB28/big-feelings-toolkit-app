@@ -3,12 +3,10 @@
 import Link from "next/link";
 import {
   Suspense,
-  memo,
   useDeferredValue,
   useEffect,
   useMemo,
   useState,
-  useTransition,
 } from "react";
 import { motion } from "framer-motion";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -16,7 +14,6 @@ import { ArrowUpDown, Search, Sparkles, X } from "lucide-react";
 import { ToolkitEditorialImage } from "@/components/toolkit/toolkit-editorial-image";
 import { ToolLibraryCard } from "@/components/tools/tool-library-card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   inputBaseClass,
   toolkitButtonGhostClass,
@@ -80,8 +77,6 @@ const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
 const TOOL_LIBRARY_ANCHOR_HREF = "/tools#tool-library";
 const GUIDED_CHECK_IN_HREF = "/check-in/zone";
 const PUBLIC_STRATEGIES_HREF = "/strategies";
-
-const SKELETON_CARD_COUNT = 6;
 
 function getDurationLabel(durationSeconds: number): string {
   const minutes = Math.max(1, Math.round(durationSeconds / 60));
@@ -164,50 +159,10 @@ function ToolsPageFallback() {
   );
 }
 
-const ToolLibraryGridSkeleton = memo(function ToolLibraryGridSkeleton() {
-  return (
-    <div className="relative mt-7 grid gap-4 md:grid-cols-2 lg:grid-cols-3" aria-hidden="true">
-      {Array.from({ length: SKELETON_CARD_COUNT }, (_, index) => (
-        <div
-          key={`tool-skeleton-${index}`}
-          className="toolkit-card-shell h-full min-h-[20.75rem] rounded-[1.85rem] p-[0.95rem]"
-        >
-          <div className="toolkit-card-shell-header relative overflow-hidden p-5 sm:px-5 sm:pb-5 sm:pt-5">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-[1.2rem]">
-                <Skeleton className="h-11 w-11 rounded-[1.35rem]" />
-                <div className="space-y-2 pt-0.5">
-                  <Skeleton className="h-3 w-24 rounded-full" />
-                  <Skeleton className="h-5 w-36 rounded-full" />
-                </div>
-              </div>
-              <Skeleton className="h-8 w-16 rounded-full" />
-            </div>
-          </div>
-
-          <div className="toolkit-card-shell-body mt-3 flex h-full flex-col gap-4 px-4 pb-4 pt-4 sm:px-5 sm:pb-5 sm:pt-4">
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-full rounded-full" />
-              <Skeleton className="h-4 w-11/12 rounded-full" />
-              <Skeleton className="h-4 w-4/5 rounded-full" />
-            </div>
-            <div className="mt-auto border-t border-slate-100 pt-3.5">
-              <Skeleton className="h-10 w-full rounded-full sm:w-32" />
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-});
-
-ToolLibraryGridSkeleton.displayName = "ToolLibraryGridSkeleton";
-
 function ToolsPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isFilterPending, startFilterTransition] = useTransition();
   const groupedTools = getToolsGroupedByCategory("toolkit");
   const allTools = useMemo<FlatTool[]>(
     () =>
@@ -242,20 +197,17 @@ function ToolsPageContent() {
   const [sortBy, setSortBy] = useState<SortOption>("alphabetical");
   const rawCategoryFilter = searchParams.get("category");
   const urlFilter: ActiveFilter = isToolCategory(rawCategoryFilter) ? rawCategoryFilter : "all";
-  const [optimisticFilter, setOptimisticFilter] = useState<ActiveFilter | null>(null);
-  const activeFilter = optimisticFilter ?? urlFilter;
+  const [activeFilter, setActiveFilter] = useState<ActiveFilter>(urlFilter);
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const normalizedSearch = deferredSearchQuery.trim().toLowerCase();
 
   useEffect(() => {
-    if (optimisticFilter === null) {
+    if (activeFilter === urlFilter) {
       return;
     }
 
-    if (optimisticFilter === urlFilter) {
-      setOptimisticFilter(null);
-    }
-  }, [optimisticFilter, urlFilter]);
+    setActiveFilter(urlFilter);
+  }, [activeFilter, urlFilter]);
 
   const activeCategoryGroup = useMemo(
     () =>
@@ -296,7 +248,7 @@ function ToolsPageContent() {
       return;
     }
 
-    setOptimisticFilter(nextFilter);
+    setActiveFilter(nextFilter);
     const params = new URLSearchParams(searchParams.toString());
 
     if (nextFilter === "all") {
@@ -308,9 +260,7 @@ function ToolsPageContent() {
     const query = params.toString();
     const href = query ? `${pathname}?${query}#tool-library` : `${pathname}#tool-library`;
 
-    startFilterTransition(() => {
-      router.replace(href, { scroll: false });
-    });
+    router.replace(href, { scroll: false });
 
     window.requestAnimationFrame(() => {
       document.getElementById("tool-library")?.scrollIntoView({
@@ -626,9 +576,7 @@ function ToolsPageContent() {
               </div>
             </motion.div>
 
-            {isFilterPending ? (
-              <ToolLibraryGridSkeleton />
-            ) : visibleTools.length > 0 ? (
+            {visibleTools.length > 0 ? (
               <motion.div
                 variants={staggerContainer}
                 layout

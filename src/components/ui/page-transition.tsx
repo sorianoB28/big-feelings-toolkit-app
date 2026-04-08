@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useClassroomSafeMode } from "@/hooks/useClassroomSafeMode";
 import { getRouteTransitionPreferences } from "@/lib/motion";
@@ -11,18 +12,20 @@ type PageTransitionProps = {
 
 export function PageTransition({ children }: PageTransitionProps) {
   const pathname = usePathname();
+  const initialPathnameRef = useRef(pathname);
   const prefersReducedMotion = useReducedMotion();
   const { classroomSafeMode } = useClassroomSafeMode();
   const motionPreferences = getRouteTransitionPreferences(
     classroomSafeMode,
     Boolean(prefersReducedMotion)
   );
+  const shouldAnimateEntry = pathname !== initialPathnameRef.current;
 
   return (
     <AnimatePresence initial={false}>
       <motion.div
         key={pathname}
-        initial={false}
+        initial={shouldAnimateEntry ? "initial" : false}
         animate="animate"
         exit="exit"
         variants={motionPreferences.variants}
